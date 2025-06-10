@@ -1,8 +1,5 @@
 # Epilepsy-Seizure-Detection-using-Causal-Asymmetries-in-Deep-Learning-Models
-
-# Epileptic Seizure Analysis: Asymmetries in Causality using Convergent Cross Mapping
-_Degree Project in Computer Science and Engineering, First cycle, 15 credits_  
-Code developed by Tenzin Sangpo Choedon, Spring 2025
+Code developed by Tenzin Sangpo Choedon, Summer 2025
 
 ## 📄 Abstract
 Extension on [the thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
