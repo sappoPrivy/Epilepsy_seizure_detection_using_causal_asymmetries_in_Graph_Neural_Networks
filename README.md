@@ -1,4 +1,4 @@
-# Epilepsy-Seizure-Detection-using-Causal-Asymmetries-in-Deep-Learning-Models
+# Epilepsy Seizure Detection using Causal Asymmetries in Deep Learning Models
 Code developed by Tenzin Sangpo Choedon, Summer 2025
 
 ## 📄 Abstract
