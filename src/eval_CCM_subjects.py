@@ -134,6 +134,25 @@ def plot_boxplot_asymm(asymm_idx_subjects, output_dir, L, E, tau):
     plt.savefig(output_dir+ f'/Overall-asymmetry-index-distribution.png')
     plt.close()
 
+# Remove the rows and columns that contain Nan in the causality matrix
+def cleanMatrix(m):
+    
+    i=0
+    # Check entries with Nan
+    while i < m.shape[0] :
+
+        # First entry contains Nan
+        if not (np.isfinite(m[i, 0]) and np.isfinite(m[0, i])):
+            m = np.delete(m, i, 0)  # Remove row i
+            m = np.delete(m, i, 1)  # Remove column i
+        
+        # Row contains no Nans
+        else:
+            i += 1
+            
+    return m
+    
+
 # Compute asymmetry index for each causality matrix in the different states
 def compute_asymm_idx(subject, output_filenames, L, E, tau):
     
@@ -143,10 +162,11 @@ def compute_asymm_idx(subject, output_filenames, L, E, tau):
     # Compute asymm idx for each state
     for output_filename in output_filenames:
         
-        # Load causality matrix
+        # Load and clean causality matrix
         X = np.load(output_filename+'.npz')
         data = X[f'L{L}_E{E}_tau{tau}']
-        
+        data = cleanMatrix(data)
+                
         # Calculate asymm index for the causality matrix
         asymm_idx = np.linalg.norm(data - data.T, 'fro')
         asymm_idxs.append(asymm_idx)
@@ -257,6 +277,38 @@ def plot_frequency_asymm_ch(asymm_subjects, output_dir, L, E, tau):
     plt.tight_layout()
     plt.savefig(output_dir+ f'/Overall-asymmetry-channel-freqs.png')
     plt.close()
+    
+# Correlation between subjects' age and causal asymmetry
+def correl_subjects(asymm_idx_subjects, subjects_props, output_dir, L, E, tau):
+    
+    # Load the asymmetry index from the list of dictionaries
+    c = np.array([dict['control'] for dict in asymm_idx_subjects])
+    pre = np.array([dict['preictal'] for dict in asymm_idx_subjects])
+    ic = np.array([dict['ictal'] for dict in asymm_idx_subjects])
+    tot = np.array([c, pre, ic]).flatten()
+    mx = [tot, c, pre, ic]
+    
+    # Pearson correlation between properties of subjects' and asymmetry index values
+    correl_c, _ = pearsonr(subjects_props, c)
+    correl_pre, _ = pearsonr(subjects_props, pre)
+    correl_ic, _ = pearsonr(subjects_props, ic)
+    correl_tot, _ = pearsonr(np.repeat(subjects_props,3), tot)
+
+    titles = [f'Total Correl {correl_tot:.2f}', f'Control Correl {correl_c:.2f}', f'Preictal Correl {correl_pre:.2f}', f'Ictal Correl {correl_ic:.2f}']
+    
+    fig, axs = plt.subplots(2, 2, figsize=(10, 8))
+    fig.suptitle('Correlation between age and asymmetry', fontsize=16)
+    
+    for i, (state, title) in enumerate(zip(mx, titles)):
+        row = i // 2
+        col = i % 2
+        rep = len(state) // len(subjects_props)
+        axs[row, col].scatter(np.repeat(subjects_props, rep), state)
+        axs[row, col].set_title(title)
+
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+    plt.savefig(output_dir+ "/Correlation-between-age-and-asymmetry.png")
+    plt.close()    
 
 # Evaluate all subjects
 def eval_subjects(subjects):
@@ -310,6 +362,9 @@ def eval_subjects(subjects):
     
     # Plot frequency of dominant asymmetric channels across all subjects
     plot_frequency_asymm_ch(asymm_ch_highest_sub, output_dir, opt_L, opt_E, opt_tau)
+    
+    # Plot correlation between asymmetry and age of subjects
+    correl_subjects(asymm_idx_subjects, np.array([11, 11, 14, 22, 7, 1.5, 3.5, 10, 3, 2, 3, 9, 16, 7, 12, 6, 13, 9, 6]), output_dir, opt_L, opt_E, opt_tau)
     
 
 # CCM Parameters
