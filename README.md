@@ -45,7 +45,7 @@ root/
   ```
 **pyTorch geometric**
 ```bash
-  pip install torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
+  pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
 ```
 
 ## 🚀 Usage
