@@ -15,13 +15,9 @@ Extension on [the thesis study](https://github.com/sappoPrivy/Causal_asymmetries
 ## 🏗️ Project Structure
 
 root/  
-├── src/  
-│   ├── preprocess_data.py  
-│   ├── process_CCM_subjects.py  
-│   └── eval_CCM_subjects.py  
-├── docs/  
-│   └── Rapport.pdf  
-├── data/    
+├── src/  # Python scripts for preprocessing, computing and evaluating ccm scores  
+├── docs/  # Documentations such as the thesis report and select few generated illustrations  
+├── data/  # CHB-MIT dataset is loaded and stored here  
 ├── README.md  
 └── .gitignore  
 
@@ -30,7 +26,7 @@ root/
 **Python 3.7+**  
 - Required Python packages (install via pip):  
   ```bash
-  pip install numpy scipy pandas matplotlib
+  pip install numpy scipy pandas matplotlib pyEDM
   ```
 **CCM**  
 - Download Python juypiter version from [here](https://phdinds-aim.github.io/time_series_handbook/06_ConvergentCrossMappingandSugiharaCausality/ccm_sugihara.html#introduction)
@@ -38,11 +34,6 @@ root/
 **CHB-MIT**
 - Download dataset from [here](https://physionet.org/content/chbmit/1.0.0/#files-panel) and store it in root/data folder 
 
-**pyEDM**
-- Download pyEDM (install via pip):
-  ```bash
-  pip install pyEDM
-  ```
 **pyTorch geometric**
 ```bash
   pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
@@ -70,10 +61,10 @@ Run the scripts in this order:
 
 <!--
 <p align="center">
-  <img src="docs/Overall-asymmetry-index-distribution.png" alt="Overall Asymmetry Index Distribution" width="100%"/>
+  <img src="docs/Overall-asymmetry-index-distribution.png" alt="Overall Asymmetry Index Distribution" width="70%"/>
 </p>
 
 <p align="center">
-  <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="100%"/>
+  <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="70%"/>
 </p>
 -->
