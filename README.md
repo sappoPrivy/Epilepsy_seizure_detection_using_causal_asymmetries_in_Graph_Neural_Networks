@@ -41,7 +41,7 @@ root/
   ```
 
 **Surrogate package**
-- Install neurokit2 for generating surrogate data via pip:
+- Install neurokit2 for surrogate data via pip:
   ```bash
   pip install neurokit2
   ```
