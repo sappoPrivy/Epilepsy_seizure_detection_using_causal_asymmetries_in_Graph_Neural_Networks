@@ -2,7 +2,7 @@
 Code developed by Tenzin Sangpo Choedon, Summer 2025
 
 ## 📄 Abstract
-Extension on [the thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
+Extension on the code developed by Tenzin Sangpo Choedon during [the thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
 
 ## 🗂️ Table of Contents
 
