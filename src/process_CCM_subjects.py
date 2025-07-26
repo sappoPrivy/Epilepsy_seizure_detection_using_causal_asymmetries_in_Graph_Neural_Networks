@@ -765,17 +765,19 @@ proc_data_dir = os.path.join(parent_dir, 'processed_data')
 output_dir = os.path.join(parent_dir, 'output_data')
 os.makedirs(output_dir, exist_ok=True)
 
-# EXCLUDED subjects 19, 7, 18, 11, 24
-list_subjects = list(reversed([f"chb{str(i).zfill(2)}" for i in [1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23]]))
-num_cores = mp.cpu_count()
-args_list = [(subject, proc_data_dir, output_dir) for subject in list_subjects]
+if __name__ == "__main__":
 
-# ccm_subject("chb01", proc_data_dir, output_dir)
+    # EXCLUDED subjects 19, 7, 18, 11, 24
+    list_subjects = list(reversed([f"chb{str(i).zfill(2)}" for i in [1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23]]))
+    num_cores = mp.cpu_count()
+    args_list = [(subject, proc_data_dir, output_dir) for subject in list_subjects]
 
-for subject in list_subjects:
-    ccm_subject(subject, proc_data_dir, output_dir)
+    # ccm_subject("chb01", proc_data_dir, output_dir)
 
-# ccm_subject("chb03", proc_data_dir, output_dir)
+    for subject in list_subjects:
+        ccm_subject(subject, proc_data_dir, output_dir)
 
-# pool = mp.Pool(8)
-# results = pool.starmap(ccm_subject,args_list)
+    # ccm_subject("chb03", proc_data_dir, output_dir)
+
+    # pool = mp.Pool(8)
+    # results = pool.starmap(ccm_subject,args_list)
