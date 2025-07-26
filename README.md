@@ -58,7 +58,11 @@ Run the scripts in this order:
    ```bash
    python src/process_CCM_subjects.py
    ```
-3. **Evaluate CCM results of all subjects**  
+3. **Generate and test Surrogate data of subjects**  
+   ```bash
+   python3 src/test_surrogate_data.py
+   ```
+4. **Evaluate CCM results of all subjects**  
    ```bash
    python src/eval_CCM_subjects.py
    ```
