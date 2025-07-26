@@ -24,7 +24,7 @@ root/
 ## ✅ Prerequisites
 
 **Python 3.7+**  
-- Required Python packages (install via pip):  
+- Install required Python packages via pip:  
   ```bash
   pip install numpy scipy pandas matplotlib pyEDM
   ```
@@ -34,11 +34,18 @@ root/
 **CHB-MIT**
 - Download dataset from [here](https://physionet.org/content/chbmit/1.0.0/#files-panel) and store it in root/data folder 
 
-**pyTorch geometric**
-```bash
-  pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
-```
+**pyTorch**
+- Install pytorch packages via pip:
+  ```bash
+    pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
+  ```
 
+**Surrogate package**
+- Install neurokit2 for surrogate data via pip:
+  ```bash
+  pip install neurokit2
+  ```
+  
 ## 🚀 Usage
 
 Run the scripts in this order:
@@ -51,7 +58,11 @@ Run the scripts in this order:
    ```bash
    python src/process_CCM_subjects.py
    ```
-3. **Evaluate CCM results of all subjects**  
+3. **Generate and test Surrogate data of subjects**  
+   ```bash
+   python3 src/test_surrogate_data.py
+   ```
+4. **Evaluate CCM results of all subjects**  
    ```bash
    python src/eval_CCM_subjects.py
    ```
