@@ -47,7 +47,7 @@ def plot_heatmap(L, E, tau, output_filename, limit_channels, type):
     plt.close()
 
 # Plot heatmaps for multiple causality matrices
-def plot_heatmaps(output_subj_dir, L, E, tau, output_filenames, limit_channels):
+def plot_heatmaps(output_subj_dir, L, E, tau, output_filenames, limit_channels, title):
     
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     channel_arr = [f"Ch{i}" for i in limit_channels]
@@ -71,7 +71,7 @@ def plot_heatmaps(output_subj_dir, L, E, tau, output_filenames, limit_channels):
     
     fig.suptitle(f'Causality heatmaps with L{L}_E{E}_tau{tau}', fontsize=16)
     plt.tight_layout(rect=[0, 0, 0.9, 1])
-    plt.savefig(output_subj_dir+f"/{output_subj_dir.split('/')[-1]}-causality-heatmaps.png")
+    plt.savefig(output_subj_dir+f"/{output_subj_dir.split('/')[-1]}-{title}.png")
     plt.close()
 
 # Plot distribution of asymmetry index values as boxplot
@@ -299,6 +299,7 @@ def correl_subjects(asymm_idx_subjects, subjects_props, output_dir, L, E, tau):
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
     fig.suptitle('Correlation between age and asymmetry', fontsize=16)
     
+    # Display the figures and points in respective state
     for i, (state, title) in enumerate(zip(mx, titles)):
         row = i // 2
         col = i % 2
@@ -338,7 +339,7 @@ def eval_subjects(subjects):
         output_filename_pre = output_dir_subj + '/patient-pre-ictal-file'
         
         # Plot heatmaps of each causality matrix corresponding to each state
-        plot_heatmaps(output_dir_subj, opt_L, opt_E, opt_tau, [output_filename_c, output_filename_pre, output_filename_ic], [i for i in range(1, 24)])
+        plot_heatmaps(output_dir_subj, opt_L, opt_E, opt_tau, [output_filename_c, output_filename_pre, output_filename_ic], [i for i in range(1, 24)], "causality-heatmaps")
         
         # Compute asymmetry index for each subject
         asymm_idx_subjects.append(compute_asymm_idx(subject, [output_filename_c, output_filename_pre, output_filename_ic], opt_L, opt_E, opt_tau))
@@ -387,9 +388,10 @@ proc_data_dir = os.path.join(parent_dir, 'processed_data')
 output_dir = os.path.join(parent_dir, 'output_data')
 os.makedirs(output_dir, exist_ok=True)
 
-# EXCLUDED subjects 19, 7, 18, 11, 24
-list_subjects = [f"chb{str(i).zfill(2)}" for i in [1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23]]
-num_cores = mp.cpu_count()
-args_list = [(subject, proc_data_dir, output_dir) for subject in list_subjects]
+if __name__ == "__main__":
+    # EXCLUDED subjects 19, 7, 18, 11, 24
+    list_subjects = [f"chb{str(i).zfill(2)}" for i in [1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23]]
+    num_cores = mp.cpu_count()
+    args_list = [(subject, proc_data_dir, output_dir) for subject in list_subjects]
 
-eval_subjects(list_subjects)
+    eval_subjects(list_subjects)
