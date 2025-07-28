@@ -45,6 +45,12 @@ root/
   ```bash
   pip install neurokit2
   ```
+
+**Hyperparameter tuning**
+- Install optuna via pip:
+  ```bash
+  pip install optuna
+  ```
   
 ## 🚀 Usage
 
