@@ -7,11 +7,11 @@ from pathlib import Path
 from itertools import chain
 import torch
 import torch_geometric
-print(torch_geometric.__version__)
-from torch_geometric.data import Data, InMemoryDataset
+from torch_geometric.data import Data
 import torch.nn.functional as F
-from torch_geometric.nn import GCNConv, global_mean_pool
+from torch_geometric.nn import TransformerConv, global_mean_pool
 from torch_geometric.loader import DataLoader
+import optuna
 
 # Consists of EEG graphs
 dataset = []
@@ -20,19 +20,19 @@ dataset = []
 class GraphClassifier(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels):
         super(GraphClassifier, self).__init__()
-        self.conv1 = GCNConv(in_channels, hidden_channels)
-        self.conv2 = GCNConv(hidden_channels, hidden_channels)
+        self.conv1 = TransformerConv(in_channels, hidden_channels, edge_dim=1)
+        self.conv2 = TransformerConv(hidden_channels, hidden_channels, edge_dim=1)
         self.lin = torch.nn.Linear(hidden_channels, out_channels)
 
     # Applies layers sequentially on feature data and edge information
     def forward(self, x, edge_index, edge_weight, batch):
-        x = F.relu(self.conv1(x, edge_index, edge_weight))
-        x = F.relu(self.conv2(x, edge_index, edge_weight))
-        x = global_mean_pool(x, batch)  # Pool over nodes to get graph representation
+        x = F.relu(self.conv1(x, edge_index, edge_weight.unsqueeze(-1)))        # Ensure edge weigths is [num_edges, 1]
+        x = F.relu(self.conv2(x, edge_index, edge_weight.unsqueeze(-1)))
+        x = global_mean_pool(x, batch)                                          # Pool over nodes to get graph representation
         return self.lin(x)
 
 ### Train the GNN model on the dataset
-def train_model(loader):
+def train_model(model, optimizer, loader):
     model.train()
     tot_loss = 0
     for data in loader:
@@ -45,7 +45,7 @@ def train_model(loader):
     return tot_loss / len(loader)
 
 ### Evaluating the Model's Performance
-def evaluate_model(loader):
+def evaluate_model(model, loader):
     model.eval()
     
     # Initialize dictionaries
@@ -53,25 +53,61 @@ def evaluate_model(loader):
     fp = {0: 0, 1: 0, 2: 0}
     fn = {0: 0, 1: 0, 2: 0}
     
+    tot_samples = 0
+    tot_correct = 0
+    
     # Test each batch of graphs
     with torch.no_grad():
         for data in loader:
-            
-            # Model predictions
             output = model(data.x, data.edge_index, data.edge_attr, data.batch)
-            
-            # Predicted labels
             pred = output.argmax(dim=1)
             
-            # Compute the successful and unsuccesful detections
             for p, y in zip(pred, data.y):
+                tot_samples += 1
                 if p == y:
                     tp[int(y)] += 1     # Correct detections
+                    tot_correct += 1
                 else:
                     fp[int(p)] += 1     # Wrong detections
                     fn[int(y)] += 1     # Missed detections
-                    
-    return tp, fp, fn
+    accuracy = tot_correct / tot_samples if tot_samples > 0 else 0.0
+    return tp, fp, fn, accuracy
+
+def objective_wrapper(val_dataset, list_subjects):
+    def objective(trial):
+        weight_decay = trial.suggest_loguniform('weight_decay', 1e-5, 1e-2)
+        learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
+
+        # Initialize the GNN model
+        num_channels = 23   # number of channels
+        num_states = 3      # number of classifications
+        model = GraphClassifier(num_channels, 16, num_states)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        
+        tot_accuracy = 0
+        
+        # Utilize leave-one-subject-out cross validation method
+        for idx, i in enumerate(list_subjects):
+            print(f"Inner Fold: {idx}")
+
+            # Partition the training dataset for validation
+            train_dataset = list(chain(val_dataset[:idx*3], val_dataset[(idx+1)*3:]))
+            test_dataset = val_dataset[idx*3:(idx+1)*3]
+        
+            # Train the data
+            train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+            loss_value = train_model(model, optimizer, train_loader)
+            print(f'Training for subject: {i}, Loss: {loss_value:.4f}')
+            
+            # Test the data
+            test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+            tp, fp, fn, accuracy = evaluate_model(model, test_loader)
+            print(f'Testing for subject: {i}, Accuracy: {accuracy}')
+            
+            tot_accuracy += accuracy
+            
+        return tot_accuracy / len(list_subjects)
+    return objective
 
 ### Creating list of Graphs as input for GNN
 def transform_causal_graph(subject, output_data_dir):
@@ -119,7 +155,9 @@ def transform_causal_graph(subject, output_data_dir):
     for x, label in zip(mx, [0, 1, 2]):
                 
         # Include all causality scores as edge weights
-        edge_attr = torch.tensor(x[~np.eye(23, dtype=bool)], dtype=torch.float)
+        x = x[~np.eye(23, dtype=bool)]             # Upper and lower triangle with no self-loops
+        x = (x - np.mean(x)) / (np.std(x) + 1e-6)  # Normalized causality values
+        edge_attr = torch.tensor(x, dtype=torch.float)
         
         data = Data(
             x=node_features, 
@@ -146,35 +184,41 @@ if __name__ == "__main__":
     for subject in list_subjects:
         transform_causal_graph(subject, output_dir)
         
-    # Initialize the GNN model
+    # Initialize the GNN paramters
     num_channels = 23   # number of channels
     num_states = 3      # number of classifications
-    model = GraphClassifier(num_channels, 16, num_states)
     
-    # Adam optimizer to train model with specified learning rate
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0)
+    # Adam optimizer to train model with learning rate and weight decay
+    # optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.0)
     
     # The number of correct detections over all subjects for each class
     count_tp = {0: 0, 1: 0, 2: 0}
     count_fp = {0: 0, 1: 0, 2: 0}
     count_fn = {0: 0, 1: 0, 2: 0}
 
-    # Utilize leave-one-subject-out cross validation method
+    # Utilize nested cross validation method
     for idx, i in enumerate(list_subjects):
-        print(f"LOO round: {idx}")
+        print(f"Outer Fold: {idx}")
         
         # Partition the dataset into training and testing sets
-        train_dataset = list(chain(dataset[:idx*3], dataset[(idx+1)*3:]))
-        test_dataset = dataset[idx*3:(idx+1)*3]
-                
+        train_dataset = list(chain(dataset[:idx*num_states], dataset[(idx+1)*num_states:]))
+        test_dataset = dataset[idx*num_states:(idx+1)*num_states]
+        
+        # Hyper parameter tuning
+        tune = optuna.create_study(direction="maximize")
+        tune.optimize(objective_wrapper(train_dataset, list_subjects[:idx] + list_subjects[idx+1:]), n_trials=100)
+        best_params = tune.best_params
+        model = GraphClassifier(num_channels, 16, num_states)
+        optimizer = torch.optim.Adam(model.parameters(), lr=best_params['learning_rate'], weight_decay=best_params['weight_decay'])
+        
         # Train the data
         train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-        loss_value = train_model(train_loader)
+        loss_value = train_model(model, optimizer, train_loader)
         print(f'Training for subject: {i}, Loss: {loss_value:.4f}')
         
         # Test the data
         test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-        tp, fp, fn = evaluate_model(test_loader)
+        tp, fp, fn, _ = evaluate_model(model, test_loader)
         
         # Update counters
         for k in tp.keys():
@@ -194,9 +238,9 @@ if __name__ == "__main__":
     
     # Compute performance metrics for each class
     for c in count_tp.keys():
-        sensitivity[c] = count_tp[c] / (count_tp[c] + count_fn[c])
-        precision[c] = count_tp[c] / (count_tp[c] + count_fp[c])
-        f1_score[c] = 2*sensitivity[c]*precision[c] / (sensitivity[c] + precision[c])
+        sensitivity[c] = count_tp[c] / (count_tp[c] + count_fn[c]) if (count_tp[c] + count_fn[c]) > 0 else 0
+        precision[c] = count_tp[c] / (count_tp[c] + count_fp[c]) if (count_tp[c] + count_fp[c]) > 0 else 0
+        f1_score[c] = 2*sensitivity[c]*precision[c] / (sensitivity[c] + precision[c]) if (sensitivity[c] + precision[c]) > 0 else 0
         metrics[c] = [count_tp[c], count_fp[c], count_fn[c], sensitivity[c], precision[c], f1_score[c]]
     
     # Save the metric data
@@ -204,8 +248,4 @@ if __name__ == "__main__":
         columns={0: "Non-seizure", 1: "Pre-seizure", 2: "Seizure"}, 
         index={0: "TP", 1: "FP", 2: "FN", 3: "Sensitivity", 4: "Precision", 5: "F1-score"}
         )
-    df.to_excel(output_dir+"/detection_evaluation_metrics.xlsx")
-    
-    
-    
-        
+    df.to_excel(output_dir+"/detection_evaluation_metrics_hyper_2.xlsx")
