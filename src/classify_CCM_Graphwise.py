@@ -113,7 +113,7 @@ def transform_causal_graph(subject):
     
     # Start processing subject
     print(f"Starting subject {subject}")
-    subject_dir = Path(config.DATA_DIR + "/" + subject)
+    subject_dir = Path(config.OUTPUT_DIR + "/" + subject)
     
     # Selected patient files
     control_file = os.path.join(subject_dir, "control-file.npz")
@@ -218,4 +218,5 @@ def classify_states():
         columns=config.STATES, 
         index={0: "TP", 1: "FP", 2: "FN", 3: "Sensitivity", 4: "Precision", 5: "F1-score"}
         )
-    df.to_excel(config.EVAL_DIR+"/detection_evaluation_metrics.xlsx")
+    df.to_excel(config.EVAL_DIR+"/detection_evaluation_metrics_hyper_2.xlsx")
+    
