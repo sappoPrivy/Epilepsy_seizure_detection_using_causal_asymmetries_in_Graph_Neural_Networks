@@ -1,8 +1,6 @@
 # Author @Tenzin Sangpo Choedon
 
 import os
-# from process_CCM_subjects import *
-# from eval_CCM_subjects import *
 
 class Config:
     def __init__(self):
