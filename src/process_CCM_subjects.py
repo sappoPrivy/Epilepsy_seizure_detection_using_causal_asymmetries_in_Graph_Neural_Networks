@@ -1,6 +1,5 @@
 # Author @Tenzin Sangpo Choedon
 
-import logging
 import os
 from pathlib import Path
 import random
@@ -25,6 +24,7 @@ import time
 import multiprocessing as mp
 from statsmodels.tsa.stattools import acf
 import pyEDM
+from config import config
 
 ######## START CCM CODE #########
 
@@ -538,7 +538,7 @@ def combine_samples(subject, patient_files):
     # Compute the total length of patient files
     for filename in patient_files:        
         
-        with np.load(os.path.join(proc_data_dir, subject, filename), mmap_mode='r') as X_p:
+        with np.load(os.path.join(config.PROC_DIR, subject, filename), mmap_mode='r') as X_p:
             # Add each length
             tot_len += X_p['arr'].shape[1]
             
@@ -555,7 +555,7 @@ def combine_samples(subject, patient_files):
         print(f"Combining patient file: {filename}")
 
         # Load data sample
-        X_p = np.load(os.path.join(proc_data_dir, subject, filename))['arr']
+        X_p = np.load(os.path.join(config.PROC_DIR, subject, filename))['arr']
         
         # Add data
         X_ps[:X_p.shape[0]:, curr_len:curr_len+X_p.shape[1]] = X_p
@@ -639,39 +639,24 @@ def compute_across_params(L_range, E_range, tau_range, output_filename, limit_ch
             print(f"Done creating {output_filename}")
 
 # Compute ccm results for all states for each subject
-def ccm_subject(subject, proc_data_dir, output_dir):
+def ccm_subject(subject):
     
     # Start processing subject
     print(f"Starting subject {subject}")
-    subject_dir = Path(proc_data_dir + "/" + subject)
-    
-    # Limit channels for parameter testing
-    limit_channels = [2, 4, 6, 7]
-    
-    # Selected patient files
-    control_file = os.path.join(subject_dir, "control-data.npz")
-    patient_ictal_files = [f for f in os.listdir(subject_dir) if os.path.isfile(os.path.join(subject_dir, f)) and f.split("-")[0]=="ictal"]
-    patient_pre_ictal_files = [f for f in os.listdir(subject_dir) if os.path.isfile(os.path.join(subject_dir, f)) and f.split("-")[0]=="pre"]
-    
-    # Output paths
-    output_dir_subj = output_dir + '/' + subject
+    subject_dir = Path(config.PROC_DIR + "/" + subject)
+    output_dir_subj = config.OUTPUT_DIR + '/' + subject
     os.makedirs(output_dir_subj, exist_ok=True)
     output_filename_c=output_dir_subj+"/control-file"
     output_filename_ic = output_dir_subj + '/patient-ictal-file'
     output_filename_pre = output_dir_subj + '/patient-pre-ictal-file'
     
+    # Selected patient files
+    control_file = os.path.join(subject_dir, "control-data.npz")
+    patient_ictal_files = [f for f in os.listdir(subject_dir) if os.path.isfile(os.path.join(subject_dir, f)) and f.split("-")[0]=="ictal"]
+    patient_pre_ictal_files = [f for f in os.listdir(subject_dir) if os.path.isfile(os.path.join(subject_dir, f)) and f.split("-")[0]=="pre"]
+
     # Load control data
-    X_c = np.load(os.path.join(proc_data_dir, subject, "nonses", control_file))['arr']
-    
-    # Parameters range
-    L_range = [6000, 7000, 8000, 9000, 10000]
-    E_range = [2,3, 4, 5]
-    tau_range=[1,2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
-    # Observed optimal parameter values (L, E, tau) = (10 000, 4, 4)
-    opt_L = L_range[4]
-    opt_tau = tau_range[3]
-    opt_E = E_range[2]
+    X_c = np.load(os.path.join(config.PROC_DIR, subject, "nonses", control_file))['arr']
     
     # Length decides amount of datapoints in the window
     global end_index
@@ -683,17 +668,17 @@ def ccm_subject(subject, proc_data_dir, output_dir):
         # 1. Compute ccm on control file across params
         start_index = X_c.shape[1]//2
         end_index = X_c.shape[1] - 1
-        compute_across_params(L_range, E_range, tau_range,output_filename_c+"_parameter-testing", limit_channels, X_c)
+        compute_across_params(config.L_RANGE, config.E_RANGE, config.TAU_RANGE,output_filename_c+"_parameter-testing", config.LIMIT_CHANNELS, X_c)
         
         # 2. Plot overall convergence of control file to decide L
-        plot_overall_convergence(output_filename_c+"_parameter-testing", L_range, E_range, tau_range)
-        opt_L = L_range[4]      # Observed from convergence plot
+        plot_overall_convergence(output_filename_c+"_parameter-testing", config.L_RANGE, config.E_RANGE, config.TAU_RANGE)
+        config.OPT_L = config.L_RANGE[4]      # Observed from convergence plot
         
         # 3. Plot autocorrelation of control file to decide tau
-        opt_tau=plot_autocorrelation(output_filename_c+"_parameter-testing", opt_L, E_range, tau_range)
+        config.OPT_TAU=plot_autocorrelation(output_filename_c+"_parameter-testing", config.OPT_L, config.E_RANGE, config.TAU_RANGE)
         
         # 4. Plot simplex projection of control file to decide E
-        opt_E=plot_simplex(output_filename_c+"_parameter-testing", limit_channels, opt_L, opt_tau, E_range, X_c)
+        config.OPT_E=plot_simplex(output_filename_c+"_parameter-testing", config.LIMIT_CHANNELS, config.OPT_L, config.OPT_TAU, config.E_RANGE, X_c)
         
     # 5. Individual convergence checks for each state for a single channel pair
     if not os.path.exists(output_dir_subj+"/test-convergences.png"):
@@ -703,49 +688,49 @@ def ccm_subject(subject, proc_data_dir, output_dir):
         i, j = 1, 2
         
         # Extract channel i and j data from control data
-        start_index= random.randint(opt_L, X_c.shape[1] - opt_L - 1)
-        end_index = start_index + opt_L
+        start_index= random.randint(config.OPT_L, X_c.shape[1] - config.OPT_L - 1)
+        end_index = start_index + config.OPT_L
         Xs.append(X_c[i, start_index:end_index])
         Ys.append(X_c[j, start_index:end_index])
         
         # Extract channel i and j data from preictal data
         X_pre, pre_len = combine_samples(subject, patient_pre_ictal_files)
-        start_index= random.randint(opt_L, pre_len - opt_L - 1)
-        end_index = start_index + opt_L
+        start_index= random.randint(config.OPT_L, pre_len - config.OPT_L - 1)
+        end_index = start_index + config.OPT_L
         Xs.append(X_pre[i, start_index:end_index])
         Ys.append(X_pre[j, start_index:end_index])
         
         # Extract channel i and j data from ictal data
         X_ic, ic_len = combine_samples(subject, patient_ictal_files)
-        start_index= random.randint(opt_L, ic_len - opt_L - 1)
-        end_index = start_index + opt_L
+        start_index= random.randint(config.OPT_L, ic_len - config.OPT_L - 1)
+        end_index = start_index + config.OPT_L
         Xs.append(X_ic[i, start_index:end_index])
         Ys.append(X_ic[j, start_index:end_index])
         
         # Plot convergence check
-        plot_convergence(f"Convergence for Ch({i}, {j})", output_dir_subj+"/test-convergences", L_range, opt_Es, opt_taus, Xs, Ys)
+        plot_convergence(f"Convergence for Ch({i}, {j})", output_dir_subj+"/test-convergences", config.L_RANGE, opt_Es, opt_taus, Xs, Ys)
     
     # 6. Compute ccm on control file for the fixed parameter set
-    start_index= random.randint(opt_L, X_c.shape[1] - opt_L - 1)
-    end_index = start_index + opt_L
-    compute_across_params([opt_L], [opt_E],[opt_tau],output_filename_c, [i for i in range(1, 24)], X_c)
+    start_index= random.randint(config.OPT_L, X_c.shape[1] - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    compute_across_params([config.OPT_L], [config.OPT_E],[config.OPT_TAU],output_filename_c, config.ALL_CHANNELS, X_c)
     
     # 7. Compute ccm on ictal files for the fixed parameter set
     X_ic, ic_len = combine_samples(subject, patient_ictal_files)
-    start_index= random.randint(opt_L, ic_len - opt_L - 1)
-    end_index = start_index + opt_L
-    compute_across_params([opt_L], [opt_E],[opt_tau],output_filename_ic, [i for i in range(1, 24)], X_ic)
+    start_index= random.randint(config.OPT_L, ic_len - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    compute_across_params([config.OPT_L], [config.OPT_E],[config.OPT_TAU],output_filename_ic, config.ALL_CHANNELS, X_ic)
     
     # 8. Compute ccm on preictal files for the fixed parameter set
     X_pre, pre_len = combine_samples(subject, patient_pre_ictal_files)
-    start_index= random.randint(opt_L, pre_len - opt_L - 1)
-    end_index = start_index + opt_L
-    compute_across_params([opt_L], [opt_E],[opt_tau],output_filename_pre, [i for i in range(1, 24)], X_pre)
+    start_index= random.randint(config.OPT_L, pre_len - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    compute_across_params([config.OPT_L], [config.OPT_E],[config.OPT_TAU],output_filename_pre, config.ALL_CHANNELS, X_pre)
                 
     # Test over window
     # OLD: compute_ccm_over_window(limit_channels, X_c, output_dir_subj)
 
-# CCM Parameters
+# Default CCM Parameters
 np.random.seed(1)
 L=10000      # length of time period
 tau=1       # time lag
@@ -754,30 +739,13 @@ E=2         # embedding dimensions
 # Select chunk
 start_index = 0
 end_index = start_index + L
-n_samples = 1
 
-# Get the parent directory
-base_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(base_dir)
-
-# Define the relative paths
-proc_data_dir = os.path.join(parent_dir, 'processed_data')
-output_dir = os.path.join(parent_dir, 'output_data')
-os.makedirs(output_dir, exist_ok=True)
-
-if __name__ == "__main__":
-
-    # EXCLUDED subjects 19, 7, 18, 11, 24
-    list_subjects = list(reversed([f"chb{str(i).zfill(2)}" for i in [1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23]]))
-    num_cores = mp.cpu_count()
-    args_list = [(subject, proc_data_dir, output_dir) for subject in list_subjects]
-
-    # ccm_subject("chb01", proc_data_dir, output_dir)
-
-    for subject in list_subjects:
-        ccm_subject(subject, proc_data_dir, output_dir)
-
-    # ccm_subject("chb03", proc_data_dir, output_dir)
-
-    # pool = mp.Pool(8)
-    # results = pool.starmap(ccm_subject,args_list)
+# Computing CCM on all subjects
+def process_CCM():
+    
+    # Compute CCM on selected subjects
+    for subject in config.SELECTED_SUBJECTS:
+        ccm_subject(subject)
+    
+    # Compute CCM on only the test subject
+    # ccm_subject(config.TEST_SUBJECT)
