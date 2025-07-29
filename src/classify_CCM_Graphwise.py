@@ -12,6 +12,7 @@ import torch.nn.functional as F
 from torch_geometric.nn import TransformerConv, global_mean_pool
 from torch_geometric.loader import DataLoader
 import optuna
+from config import config
 
 # Consists of EEG graphs
 dataset = []
@@ -79,9 +80,7 @@ def objective_wrapper(val_dataset, list_subjects):
         learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
 
         # Initialize the GNN model
-        num_channels = 23   # number of channels
-        num_states = 3      # number of classifications
-        model = GraphClassifier(num_channels, 16, num_states)
+        model = GraphClassifier(config.NUM_CHANNELS, 16, config.NUM_STATES)
         optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         
         tot_accuracy = 0
@@ -91,8 +90,8 @@ def objective_wrapper(val_dataset, list_subjects):
             print(f"Inner Fold: {idx}")
 
             # Partition the training dataset for validation
-            train_dataset = list(chain(val_dataset[:idx*3], val_dataset[(idx+1)*3:]))
-            test_dataset = val_dataset[idx*3:(idx+1)*3]
+            train_dataset = list(chain(val_dataset[:idx*config.NUM_STATES], val_dataset[(idx+1)*config.NUM_STATES:]))
+            test_dataset = val_dataset[idx*config.NUM_STATES:(idx+1)*config.NUM_STATES]
         
             # Train the data
             train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
@@ -110,53 +109,38 @@ def objective_wrapper(val_dataset, list_subjects):
     return objective
 
 ### Creating list of Graphs as input for GNN
-def transform_causal_graph(subject, output_data_dir):
+def transform_causal_graph(subject):
     
     # Start processing subject
     print(f"Starting subject {subject}")
-    subject_dir = Path(output_data_dir + "/" + subject)
+    subject_dir = Path(config.DATA_DIR + "/" + subject)
     
     # Selected patient files
     control_file = os.path.join(subject_dir, "control-file.npz")
     patient_ictal_file = os.path.join(subject_dir, "patient-ictal-file.npz")
     patient_pre_ictal_file = os.path.join(subject_dir, "patient-pre-ictal-file.npz")
-    
-    # Output paths
-    output_dir_subj = output_data_dir + '/' + subject
-    os.makedirs(output_dir_subj, exist_ok=True)
-    output_filename_graphs = output_dir_subj + "/Graphs"
-    
-    # Parameters range
-    L_range = [6000, 7000, 8000, 9000, 10000]
-    E_range = [2, 3, 4, 5]
-    tau_range=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
-    # Observed optimal parameter values (L, E, tau) = (10 000, 4, 4)
-    opt_L = L_range[4]
-    opt_tau = tau_range[3]
-    opt_E = E_range[2]
-    
+        
     # Load control data
     C_c = np.load(control_file)
     C_ic = np.load(patient_ictal_file)
     C_pre = np.load(patient_pre_ictal_file)
     
-    data_c = C_c[f'L{opt_L}_E{opt_E}_tau{opt_tau}']
-    data_ic = C_ic[f'L{opt_L}_E{opt_E}_tau{opt_tau}']
-    data_pre = C_pre[f'L{opt_L}_E{opt_E}_tau{opt_tau}']
+    data_c = C_c[f'L{config.OPT_L}_E{config.OPT_E}_tau{config.OPT_TAU}']
+    data_ic = C_ic[f'L{config.OPT_L}_E{config.OPT_E}_tau{config.OPT_TAU}']
+    data_pre = C_pre[f'L{config.OPT_L}_E{config.OPT_E}_tau{config.OPT_TAU}']
     mx = [data_c, data_pre, data_ic]
     
     # Identity matrix with 23 channels
-    node_features = torch.eye(23)
+    node_features = torch.eye(config.NUM_CHANNELS)
 
     # Include all causal relationships as edges except self loops
-    edge_index = torch.tensor([(i, j) for i in range(23) for j in range(23) if i != j], dtype=torch.long).T 
+    edge_index = torch.tensor([(i, j) for i in range(config.NUM_CHANNELS) for j in range(config.NUM_CHANNELS) if i != j], dtype=torch.long).T 
     
-    for x, label in zip(mx, [0, 1, 2]):
+    for x, label in zip(mx, config.LABELS):
                 
         # Include all causality scores as edge weights
-        x = x[~np.eye(23, dtype=bool)]             # Upper and lower triangle with no self-loops
-        x = (x - np.mean(x)) / (np.std(x) + 1e-6)  # Normalized causality values
+        x = x[~np.eye(config.NUM_CHANNELS, dtype=bool)]             # Upper and lower triangle with no self-loops
+        x = (x - np.mean(x)) / (np.std(x) + 1e-6)                   # Normalized causality values
         edge_attr = torch.tensor(x, dtype=torch.float)
         
         data = Data(
@@ -168,47 +152,33 @@ def transform_causal_graph(subject, output_data_dir):
         dataset.append(data)
         print("Added")
 
-# Get the parent directory
-base_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(base_dir)
-
-# Define the relative paths
-output_dir = os.path.join(parent_dir, 'output_data')
-os.makedirs(output_dir, exist_ok=True)
-
-if __name__ == "__main__":
+# Classify states using data from all subjects
+def classify_states():
     
-    # EXCLUDED subjects 19, 7, 18, 11, 24, 22
-    list_subjects = list(reversed([f"chb{str(i).zfill(2)}" for i in [1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 23]]))
-
-    for subject in list_subjects:
-        transform_causal_graph(subject, output_dir)
+    for subject in config.SELECTED_SUBJECTS:
+        transform_causal_graph(subject)
+        torch.save(dataset, config.GRAPHS_DIR+"/dataset.pt")
         
-    # Initialize the GNN paramters
-    num_channels = 23   # number of channels
-    num_states = 3      # number of classifications
-    
-    # Adam optimizer to train model with learning rate and weight decay
-    # optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0.0)
-    
     # The number of correct detections over all subjects for each class
     count_tp = {0: 0, 1: 0, 2: 0}
     count_fp = {0: 0, 1: 0, 2: 0}
     count_fn = {0: 0, 1: 0, 2: 0}
 
     # Utilize nested cross validation method
-    for idx, i in enumerate(list_subjects):
+    for idx, i in enumerate(config.SELECTED_SUBJECTS):
         print(f"Outer Fold: {idx}")
         
         # Partition the dataset into training and testing sets
-        train_dataset = list(chain(dataset[:idx*num_states], dataset[(idx+1)*num_states:]))
-        test_dataset = dataset[idx*num_states:(idx+1)*num_states]
+        train_dataset = list(chain(dataset[:idx*config.NUM_STATES], dataset[(idx+1)*config.NUM_STATES:]))
+        test_dataset = dataset[idx*config.NUM_STATES:(idx+1)*config.NUM_STATES]
         
         # Hyper parameter tuning
         tune = optuna.create_study(direction="maximize")
-        tune.optimize(objective_wrapper(train_dataset, list_subjects[:idx] + list_subjects[idx+1:]), n_trials=100)
+        tune.optimize(objective_wrapper(train_dataset, config.SELECTED_SUBJECTS[:idx] + config.SELECTED_SUBJECTS[idx+1:]), n_trials=100)
         best_params = tune.best_params
-        model = GraphClassifier(num_channels, 16, num_states)
+        
+        # Adam optimizer to train model with learning rate and weight decay
+        model = GraphClassifier(config.NUM_CHANNELS, 16, config.NUM_STATES)
         optimizer = torch.optim.Adam(model.parameters(), lr=best_params['learning_rate'], weight_decay=best_params['weight_decay'])
         
         # Train the data
@@ -245,7 +215,7 @@ if __name__ == "__main__":
     
     # Save the metric data
     df = pd.DataFrame(metrics).rename(
-        columns={0: "Non-seizure", 1: "Pre-seizure", 2: "Seizure"}, 
+        columns=config.STATES, 
         index={0: "TP", 1: "FP", 2: "FN", 3: "Sensitivity", 4: "Precision", 5: "F1-score"}
         )
-    df.to_excel(output_dir+"/detection_evaluation_metrics_hyper_2.xlsx")
+    df.to_excel(config.EVAL_DIR+"/detection_evaluation_metrics.xlsx")
