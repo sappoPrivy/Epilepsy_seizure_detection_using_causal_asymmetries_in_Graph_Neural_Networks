@@ -23,6 +23,7 @@ from statsmodels.tsa.stattools import acf
 import pyEDM
 from process_CCM_subjects import *
 from eval_CCM_subjects import *
+from config import config
 
 # Generate surrogate data with random phase using fft
 def generate_surrogate(X):
@@ -58,11 +59,11 @@ def generate_surrogates(limit_channels, X):
     return X_surrogates
         
 # Test surrogate data for the subject
-def test_subject(subject, proc_data_dir, output_dir):
+def test_subject(subject):
     
     # Start processing subject
     print(f"Starting subject {subject}")
-    subject_dir = Path(proc_data_dir + "/" + subject)
+    subject_dir = Path(config.PROC_DIR + "/" + subject)
     
     # Selected patient files
     control_file = os.path.join(subject_dir, "control-data.npz")
@@ -70,7 +71,7 @@ def test_subject(subject, proc_data_dir, output_dir):
     patient_pre_ictal_files = [f for f in os.listdir(subject_dir) if os.path.isfile(os.path.join(subject_dir, f)) and f.split("-")[0]=="pre"]
     
     # Output paths
-    output_dir_subj = output_dir + '/' + subject
+    output_dir_subj = config.OUTPUT_DIR + '/' + subject
     os.makedirs(output_dir_subj, exist_ok=True)
     output_filename_cs = output_dir_subj + "/control-file-surrogate"
     output_filename_ics = output_dir_subj + '/patient-ictal-file-surrogate'
@@ -81,36 +82,26 @@ def test_subject(subject, proc_data_dir, output_dir):
     X_ic, ic_len = combine_samples(subject, patient_ictal_files)
     X_pre, pre_len = combine_samples(subject, patient_pre_ictal_files)
     
-    # Parameters range
-    L_range = [6000, 7000, 8000, 9000, 10000]
-    E_range = [2,3, 4, 5]
-    tau_range=[1,2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
-    # Observed optimal parameter values (L, E, tau) = (10 000, 4, 4)
-    opt_L = L_range[4]
-    opt_tau = tau_range[3]
-    opt_E = E_range[2]
-    
     # Length decides amount of datapoints in the window
     global end_index
     global start_index
     
-    start_index= random.randint(opt_L, X_c.shape[1] - opt_L - 1)
-    end_index = start_index + opt_L
-    X_cs = generate_surrogates([i for i in range(1, 24)], X_c)
-    compute_across_params([opt_L], [opt_E],[opt_tau],output_filename_cs, [i for i in range(1, 24)], X_cs)
+    start_index= random.randint(config.OPT_L, X_c.shape[1] - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    X_cs = generate_surrogates(config.ALL_CHANNELS, X_c)
+    compute_across_params([config.OPT_L], [config.OPT_E],[config.OPT_TAU],output_filename_cs, config.ALL_CHANNELS, X_cs)
     
-    start_index= random.randint(opt_L, ic_len - opt_L - 1)
-    end_index = start_index + opt_L
-    X_ics = generate_surrogates([i for i in range(1, 24)], X_ic)
-    compute_across_params([opt_L], [opt_E],[opt_tau],output_filename_ics, [i for i in range(1, 24)], X_ics)
+    start_index= random.randint(config.OPT_L, ic_len - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    X_ics = generate_surrogates(config.ALL_CHANNELS, X_ic)
+    compute_across_params([config.OPT_L], [config.OPT_E],[config.OPT_TAU],output_filename_ics, config.ALL_CHANNELS, X_ics)
     
-    start_index= random.randint(opt_L, pre_len - opt_L - 1)
-    end_index = start_index + opt_L
-    X_pres = generate_surrogates([i for i in range(1, 24)], X_pre)
-    compute_across_params([opt_L], [opt_E],[opt_tau],output_filename_pres, [i for i in range(1, 24)], X_pres)
+    start_index= random.randint(config.OPT_L, pre_len - config.OPT_TAU - 1)
+    end_index = start_index + config.OPT_L
+    X_pres = generate_surrogates(config.ALL_CHANNELS, X_pre)
+    compute_across_params([config.OPT_L], [config.OPT_E],[config.OPT_TAU],output_filename_pres, config.ALL_CHANNELS, X_pres)
     
-    plot_heatmaps(output_dir_subj, opt_L, opt_E, opt_tau, [output_filename_cs, output_filename_pres, output_filename_ics], [i for i in range(1, 24)], "surrogates-heatmaps")
+    plot_heatmaps(output_dir_subj, config.OPT_L, config.OPT_E, config.OPT_TAU, [output_filename_cs, output_filename_pres, output_filename_ics], config.ALL_CHANNELS, "surrogates-heatmaps")
 
 # CCM Parameters
 np.random.seed(1)
@@ -121,23 +112,9 @@ E=2         # embedding dimensions
 # Select chunk
 start_index = 0
 end_index = start_index + L
-n_samples = 1
 
+# Generate and test surrogate data of all subjects
+def test_surrogates_subjects():
 
-# Get the parent directory
-base_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(base_dir)
-
-# Define the relative paths
-proc_data_dir = os.path.join(parent_dir, 'processed_data')
-dummy_data_dir = os.path.join(parent_dir, 'dummy_data')
-data_dir = os.path.join(parent_dir, os.path.join('data', "chbmit-1.0.0.physionet.org"))
-output_dir = os.path.join(parent_dir, 'output_data')
-
-# EXCLUDED subjects 19, 7, 18, 11, 24
-list_subjects = [f"chb{str(i).zfill(2)}" for i in [1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23]]
-# num_cores = mp.cpu_count()
-args_list = [(subject, proc_data_dir, output_dir) for subject in list_subjects]
-
-for subject in list_subjects:
-    test_subject(subject, proc_data_dir, output_dir)
+    for subject in config.SELECTED_SUBJECTS:
+        test_subject(subject)
