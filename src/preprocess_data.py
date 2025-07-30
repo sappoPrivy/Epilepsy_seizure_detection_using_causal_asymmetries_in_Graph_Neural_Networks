@@ -151,3 +151,6 @@ def preprocess():
     
     # Preprocess only one subject
     # preprocess_subject(TEST_SUBJECT,DATA_DIR)
+
+if __name__ == "__main__":
+    preprocess()
