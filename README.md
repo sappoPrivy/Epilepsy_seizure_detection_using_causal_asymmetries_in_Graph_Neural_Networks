@@ -85,6 +85,15 @@ Otherwise run the scripts in this order and change the global variables accordin
 ## 📘 Key Findings
 [Read the Rapport](docs/Rapport.pdf)
 
+	Non-seizure	Pre-seizure	Seizure
+TP	9	4	6
+FP	17	7	11
+FN	9	14	12
+Sensitivity	0.50	0.22	0.33
+Precision	0.35	0.36	0.35
+F1-score	0.41	0.28	0.34
+
+
 <!--
 <p align="center">
   <img src="docs/Overall-asymmetry-index-distribution.png" alt="Overall Asymmetry Index Distribution" width="70%"/>
