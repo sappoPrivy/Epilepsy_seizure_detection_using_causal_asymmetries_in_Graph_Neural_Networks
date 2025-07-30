@@ -749,3 +749,6 @@ def process_CCM():
     
     # Compute CCM on only the test subject
     # ccm_subject(config.TEST_SUBJECT)
+
+if __name__ == "__main__":
+    process_CCM()
