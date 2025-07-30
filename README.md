@@ -16,8 +16,12 @@ Extension on the code developed by Tenzin Sangpo Choedon during [the thesis stud
 
 root/  
 ├── src/  # Python scripts for preprocessing, computing and evaluating ccm scores  
-├── docs/  # Documentations such as the thesis report and select few generated illustrations  
+├── docs/  # Documentations such as a brief report and select few generated illustrations  
 ├── data/  # CHB-MIT dataset is loaded and stored here  
+├── processed_data/  # Preprocessed data from CHB-MIT dataset is stored here  
+├── output_data/  # CCM output of the preprocessed data  
+├── graphs_data/  # Graph datasets is stored here  
+├── eval_data/  # Evaluation and performance metric values are stored here  
 ├── README.md  
 └── .gitignore  
 
