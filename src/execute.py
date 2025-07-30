@@ -10,7 +10,7 @@ from preprocess_data import *
 from process_CCM_subjects import *
 from eval_CCM_subjects import *
 from test_surrogate_data import *
-from classify_CCM_Graphwise_new import *
+from classify_CCM_Graphs import *
 
 def safe_execute(func, *args, **kwargs):
     try:
@@ -24,10 +24,10 @@ def safe_execute(func, *args, **kwargs):
 
 def execute():
     config.create_directories()
-    # safe_execute(preprocess)
-    # safe_execute(process_CCM)
-    # safe_execute(eval_subjects)
-    # safe_execute(test_surrogates_subjects)
+    safe_execute(preprocess)
+    safe_execute(process_CCM)
+    safe_execute(eval_subjects)
+    safe_execute(test_surrogates_subjects)
     safe_execute(classify_states)
 
 if __name__ == "__main__":
