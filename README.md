@@ -27,7 +27,7 @@ root/
 
 ## ✅ Prerequisites
 
-- **Python 3.7+ packages**    
+- **Python 3.7+ packages**
   ```bash
   pip install numpy scipy pandas matplotlib pyEDM
   ```
