@@ -29,9 +29,9 @@ root/
 
 **Python 3.7+**  
 Install required Python packages via pip:  
-  ```bash
-  pip install numpy scipy pandas matplotlib pyEDM
-  ```
+```bash
+pip install numpy scipy pandas matplotlib pyEDM
+```
 **CCM**  
 Download Python juypiter version from [here](https://phdinds-aim.github.io/time_series_handbook/06_ConvergentCrossMappingandSugiharaCausality/ccm_sugihara.html#introduction)
 
@@ -40,21 +40,21 @@ Download dataset from [here](https://physionet.org/content/chbmit/1.0.0/#files-p
 
 **pyTorch**  
 Install pytorch packages via pip:
-  ```bash
-    pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
-  ```
+```bash
+pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
+```
 
 **Surrogate package**  
 Install neurokit2 for surrogate data via pip:
-  ```bash
-  pip install neurokit2
-  ```
+```bash
+pip install neurokit2
+```
 
 **Hyperparameter tuning**  
 Install optuna via pip:
-  ```bash
-  pip install optuna
-  ```
+```bash
+pip install optuna
+```
   
 ## 🚀 Usage
 
