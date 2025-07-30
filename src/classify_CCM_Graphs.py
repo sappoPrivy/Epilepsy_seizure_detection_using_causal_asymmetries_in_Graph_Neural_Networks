@@ -15,7 +15,8 @@ import optuna
 from config import config
 
 # Consists of EEG graphs
-dataset = []
+baseline_dataset = []
+reduced_dataset = []
 
 ### Defining the GNN model with 2 GCN layers, ReLu
 class GraphClassifier(torch.nn.Module):
@@ -134,31 +135,48 @@ def transform_causal_graph(subject):
     node_features = torch.eye(config.NUM_CHANNELS)
 
     # Include all causal relationships as edges except self loops
-    edge_index = torch.tensor([(i, j) for i in range(config.NUM_CHANNELS) for j in range(config.NUM_CHANNELS) if i != j], dtype=torch.long).T 
+    edges = [(i, j) for i in range(config.NUM_CHANNELS) for j in range(config.NUM_CHANNELS) if i != j]
+    edge_index = torch.tensor(edges, dtype=torch.long).T 
     
     for x, label in zip(mx, config.LABELS):
-                
+                        
         # Include all causality scores as edge weights
-        x = x[~np.eye(config.NUM_CHANNELS, dtype=bool)]             # Upper and lower triangle with no self-loops
-        x = (x - np.mean(x)) / (np.std(x) + 1e-6)                   # Normalized causality values
-        edge_attr = torch.tensor(x, dtype=torch.float)
+        mask = ~np.eye(config.NUM_CHANNELS, dtype=bool)             # Mask with no self-loops
+        x = (x - np.mean(x[mask])) / (np.std(x[mask]) + 1e-6)       # Normalized causality values
         
+        # Causality scores as edge weights
+        weights = np.array([x[i, j] for (i, j) in edges])
+        edge_attr = torch.tensor(weights , dtype=torch.float)
+        
+        # Baseline graph
         data = Data(
             x=node_features, 
             edge_index=edge_index, 
             edge_attr = edge_attr,
             y=torch.tensor([label], dtype=torch.long)
             )
-        dataset.append(data)
+        baseline_dataset.append(data)
+        
+        # Reduced edges
+        reduced_ch_idx = [x - 1 for x in config.REDUCE_CHANNELS[label]]
+        reduced_edges = [(i, j) for i in reduced_ch_idx for j in range(config.NUM_CHANNELS) if i != j] + [(i, j) for i in range(config.NUM_CHANNELS) for j in reduced_ch_idx if i != j]
+        red_edge_index = torch.tensor(reduced_edges, dtype=torch.long).T 
+        
+        # Causality scores from the reduced edges
+        red_weights = np.array([x[i, j] for (i, j) in reduced_edges])
+        red_edge_attr = torch.tensor(red_weights, dtype=torch.float)
+        
+        # Reduced graph
+        reduced_data = Data(
+            x=node_features, 
+            edge_index=red_edge_index, 
+            edge_attr = red_edge_attr,
+            y=torch.tensor([label], dtype=torch.long)
+            )
+        reduced_dataset.append(reduced_data)
         print("Added")
 
-# Classify states using data from all subjects
-def classify_states():
-    
-    for subject in config.SELECTED_SUBJECTS:
-        transform_causal_graph(subject)
-        torch.save(dataset, config.GRAPHS_DIR+"/dataset.pt")
-        
+def eval_model(dataset, filename):
     # The number of correct detections over all subjects for each class
     count_tp = {0: 0, 1: 0, 2: 0}
     count_fp = {0: 0, 1: 0, 2: 0}
@@ -218,5 +236,21 @@ def classify_states():
         columns=config.STATES, 
         index={0: "TP", 1: "FP", 2: "FN", 3: "Sensitivity", 4: "Precision", 5: "F1-score"}
         )
-    df.to_excel(config.EVAL_DIR+"/detection_evaluation_metrics_hyper_2.xlsx")
+    df.to_excel(config.EVAL_DIR+f"/detection_evaluation_metrics_{filename}.xlsx")
+
+# Classify states using data from all subjects
+def classify_states():
     
+    # Generate causal graphs for baseline and the reduced set
+    for subject in config.SELECTED_SUBJECTS:
+        transform_causal_graph(subject)
+        torch.save(baseline_dataset, config.GRAPHS_DIR+"/baseline_dataset.pt")
+        torch.save(reduced_dataset, config.GRAPHS_DIR+"/reduced_dataset.pt")
+    
+    # Evaluate and compare models
+    eval_model(baseline_dataset, "baseline")
+    eval_model(reduced_dataset, "reduced")
+    
+    
+if __name__ == "__main__":
+    classify_states()
