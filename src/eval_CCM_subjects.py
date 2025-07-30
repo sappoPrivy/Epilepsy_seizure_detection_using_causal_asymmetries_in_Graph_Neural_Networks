@@ -368,3 +368,5 @@ def eval_subjects():
     # Plot correlation between asymmetry and age of subjects
     correl_subjects(asymm_idx_subjects, np.array([11, 11, 14, 22, 7, 1.5, 3.5, 10, 3, 2, 3, 9, 16, 7, 12, 6, 13, 6]), config.EVAL_DIR, config.OPT_L, config.OPT_E, config.OPT_TAU)
 
+if __name__ == "__main__":
+    eval_subjects()
