@@ -35,22 +35,22 @@ Install required Python packages via pip:
 **CCM**  
 Download Python juypiter version from [here](https://phdinds-aim.github.io/time_series_handbook/06_ConvergentCrossMappingandSugiharaCausality/ccm_sugihara.html#introduction)
 
-**CHB-MIT**
+**CHB-MIT**  
 Download dataset from [here](https://physionet.org/content/chbmit/1.0.0/#files-panel) and store it in root/data folder 
 
-**pyTorch**
+**pyTorch**  
 Install pytorch packages via pip:
   ```bash
     pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
   ```
 
-**Surrogate package**
+**Surrogate package**  
 Install neurokit2 for surrogate data via pip:
   ```bash
   pip install neurokit2
   ```
 
-**Hyperparameter tuning**
+**Hyperparameter tuning**  
 Install optuna via pip:
   ```bash
   pip install optuna
@@ -65,21 +65,25 @@ python src/main.py
 
 Otherwise run the scripts in this order and change the global variables accordingly in config.py depending on result analysis:
 
-1. **Preprocess data**  
+1. **Preprocess data** (results automatically stored in processed_data)  
    ```bash
    python src/preprocess_data.py
    ```
-2. **Compute CCM on subjects**  
+2. **Compute CCM on subjects** (results automatically stored in output_data)   
    ```bash
    python src/process_CCM_subjects.py
    ```
-3. **Generate and test Surrogate data of subjects**  
+3. **Generate and test Surrogate data of subjects** (results automatically stored in output_data)  
    ```bash
    python3 src/test_surrogate_data.py
    ```
-4. **Evaluate CCM results of all subjects**  
+4. **Evaluate CCM results of all subjects** (results automatically stored in eval_data)  
    ```bash
    python src/eval_CCM_subjects.py
+   ```
+5. **Classify CCM results of all subjects** (results automatically stored in graphs_data and eval_data)  
+   ```bash
+   python src/classify_CCM_Graphs.py
    ```
 
 ## 📘 Key Findings
