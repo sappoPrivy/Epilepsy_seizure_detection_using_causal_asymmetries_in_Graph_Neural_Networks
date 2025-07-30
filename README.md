@@ -85,7 +85,6 @@ Otherwise run the scripts in this order and change the global variables accordin
    ```
 
 ## 📘 Key Findings
-[The Rapport is progress](docs/Rapport.pdf)
 
 **Performance evaluation on whole causality matrices**
 | Metric        | Non-seizure | Pre-seizure | Seizure |
@@ -107,7 +106,7 @@ Otherwise run the scripts in this order and change the global variables accordin
 | **Precision**   | 0.35     | 0.36        | 0.35    |
 | **F1-score**    | 0.41     | 0.28        | 0.34    |
 
-
+[The Rapport is progress](docs/Rapport.pdf)
 
 <!--
 <p align="center">
