@@ -54,7 +54,7 @@ root/
   
 ## 🚀 Usage
 
-**Run automatically all codes**
+**Run automatically all codes and create all directories**
 ```bash
 python src/main.py
 ```
