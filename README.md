@@ -59,7 +59,7 @@ root/
 python src/main.py
 ```
 
-Otherwise run the scripts in this order and change the global variables accordingly in config.py depending on results:
+Otherwise run the scripts in this order and change the global variables accordingly in config.py depending on result analysis:
 
 1. **Preprocess data**  
    ```bash
