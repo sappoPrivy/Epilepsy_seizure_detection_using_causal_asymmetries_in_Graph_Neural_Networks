@@ -85,13 +85,26 @@ Otherwise run the scripts in this order and change the global variables accordin
 ## 📘 Key Findings
 [Read the Rapport](docs/Rapport.pdf)
 
-	Non-seizure	Pre-seizure	Seizure
-TP	9	4	6
-FP	17	7	11
-FN	9	14	12
-Sensitivity	0.50	0.22	0.33
-Precision	0.35	0.36	0.35
-F1-score	0.41	0.28	0.34
+**Performance evaluation on whole causality matrices**
+| Metric        | Non-seizure | Pre-seizure | Seizure |
+|---------------|-------------|-------------|---------|
+| **TP**        | 4           | 6           | 5       |
+| **FP**        | 13          | 12          | 14      |
+| **FN**        | 14          | 12          | 13      |
+| **Sensitivity** | 0.22      | 0.33        | 0.28    |
+| **Precision**   | 0.24      | 0.33        | 0.26    |
+| **F1-score**    | 0.23      | 0.33        | 0.27    |
+
+**Performance evaluation on reduced causality matrices**
+| Metric       | Non-seizure | Pre-seizure | Seizure |
+|--------------|-------------|-------------|---------|
+| **TP**       | 9           | 4           | 6       |
+| **FP**       | 17          | 7           | 11      |
+| **FN**       | 9           | 14          | 12      |
+| **Sensitivity** | 0.50     | 0.22        | 0.33    |
+| **Precision**   | 0.35     | 0.36        | 0.35    |
+| **F1-score**    | 0.41     | 0.28        | 0.34    |
+
 
 
 <!--
