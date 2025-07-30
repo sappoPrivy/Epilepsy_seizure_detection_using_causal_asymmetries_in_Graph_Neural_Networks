@@ -54,7 +54,12 @@ root/
   
 ## 🚀 Usage
 
-Run the scripts in this order:
+**Run automatically all codes**
+```bash
+python src/main.py
+```
+
+Otherwise Run the scripts in this order:
 
 1. **Preprocess data**  
    ```bash
