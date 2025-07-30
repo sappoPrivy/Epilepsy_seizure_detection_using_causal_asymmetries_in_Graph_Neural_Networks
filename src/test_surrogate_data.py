@@ -118,3 +118,6 @@ def test_surrogates_subjects():
 
     for subject in config.SELECTED_SUBJECTS:
         test_subject(subject)
+
+if __name__ == "__main__":
+    test_surrogates_subjects()
