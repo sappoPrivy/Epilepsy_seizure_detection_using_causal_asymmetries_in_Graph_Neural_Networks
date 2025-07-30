@@ -83,7 +83,7 @@ Otherwise run the scripts in this order and change the global variables accordin
    ```
 
 ## 📘 Key Findings
-[Read the Rapport](docs/Rapport.pdf)
+[The Rapport is progress](docs/Rapport.pdf)
 
 **Performance evaluation on whole causality matrices**
 | Metric        | Non-seizure | Pre-seizure | Seizure |
