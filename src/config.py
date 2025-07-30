@@ -30,9 +30,16 @@ class Config:
         self.OPT_E = 4
         
         # Channels
-        self.LIMIT_CHANNELS = [2, 4, 6, 7]      # Limit channels for parameter testing
+        self.LIMIT_CHANNELS = [2, 4, 6, 7]                          # Limit channels for CCM parameter testing
         self.ALL_CHANNELS = list(range(1, 24))
         self.NUM_CHANNELS = 23
+        
+        # Dominant asymmetric channels (Observed from analysis)
+        self.REDUCE_CHANNELS = {
+            0: [5, 21, 22],
+            1: [5, 18, 20],
+            2: [5, 6, 12]
+        }
         
         # Classes and labels
         self.STATES = {
