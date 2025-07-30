@@ -1,12 +1,14 @@
 # Epilepsy Seizure Detection using Causal Asymmetries in Deep Learning Models
 Code developed by Tenzin Sangpo Choedon, Summer 2025
-
-## 📄 Abstract
 Extension on the code developed by Tenzin Sangpo Choedon during [the thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
 
+<!--
+## 📄 Abstract
+Extension on the code developed by Tenzin Sangpo Choedon during [the thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
+-->
 ## 🗂️ Table of Contents
 
-- [Abstract](#-abstract)
+<!--- [Abstract](#-abstract)-->
 - [Project Structure](#-project-structure)
 - [Prerequisites](#-prerequisites)
 - [Usage](#-usage)
