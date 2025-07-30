@@ -28,30 +28,30 @@ root/
 ## ✅ Prerequisites
 
 **Python 3.7+**  
-- Install required Python packages via pip:  
+Install required Python packages via pip:  
   ```bash
   pip install numpy scipy pandas matplotlib pyEDM
   ```
 **CCM**  
-- Download Python juypiter version from [here](https://phdinds-aim.github.io/time_series_handbook/06_ConvergentCrossMappingandSugiharaCausality/ccm_sugihara.html#introduction)
+Download Python juypiter version from [here](https://phdinds-aim.github.io/time_series_handbook/06_ConvergentCrossMappingandSugiharaCausality/ccm_sugihara.html#introduction)
 
 **CHB-MIT**
-- Download dataset from [here](https://physionet.org/content/chbmit/1.0.0/#files-panel) and store it in root/data folder 
+Download dataset from [here](https://physionet.org/content/chbmit/1.0.0/#files-panel) and store it in root/data folder 
 
 **pyTorch**
-- Install pytorch packages via pip:
+Install pytorch packages via pip:
   ```bash
     pip install tourch torch-scatter torch-sparse torch-cluster torch-spline-conv torch-geometric
   ```
 
 **Surrogate package**
-- Install neurokit2 for surrogate data via pip:
+Install neurokit2 for surrogate data via pip:
   ```bash
   pip install neurokit2
   ```
 
 **Hyperparameter tuning**
-- Install optuna via pip:
+Install optuna via pip:
   ```bash
   pip install optuna
   ```
