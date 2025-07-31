@@ -99,7 +99,7 @@ Otherwise run the scripts in this order and change the global variables accordin
 | **Sensitivity** | 0.22      | 0.33        | 0.28    |
 | **Precision**   | 0.24      | 0.33        | 0.26    |
 | **F1-score**    | 0.23      | 0.33        | 0.27    |
-
+<div align="center">
 **Performance evaluation on reduced causality matrices**
 | Metric       | Non-seizure | Pre-seizure | Seizure |
 |--------------|-------------|-------------|---------|
@@ -109,7 +109,7 @@ Otherwise run the scripts in this order and change the global variables accordin
 | **Sensitivity** | 0.50     | 0.22        | 0.33    |
 | **Precision**   | 0.35     | 0.36        | 0.35    |
 | **F1-score**    | 0.41     | 0.28        | 0.34    |
-
+</div>
 [The Rapport is in progress](docs/Rapport.pdf)
 
 <!--
