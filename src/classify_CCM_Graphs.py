@@ -80,8 +80,10 @@ def objective_wrapper(val_dataset, list_subjects):
         weight_decay = trial.suggest_loguniform('weight_decay', 1e-5, 1e-2)
         learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
 
+        num_feature_segments = 38
+        
         # Initialize the GNN model
-        model = GraphClassifier(config.NUM_CHANNELS, 16, config.NUM_STATES)
+        model = GraphClassifier(num_feature_segments, 16, config.NUM_STATES)
         optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         
         tot_accuracy = 0
@@ -109,18 +111,18 @@ def objective_wrapper(val_dataset, list_subjects):
         return tot_accuracy / len(list_subjects)
     return objective
 
-### Creating list of Graphs as input for GNN
+### Creating list of Graphs as input for GNN model
 def transform_causal_graph(subject):
     
     # Start processing subject
     print(f"Starting subject {subject}")
     subject_dir = Path(config.OUTPUT_DIR + "/" + subject)
     
-    # Selected patient files
+    # Selected CCM matrices
     control_file = os.path.join(subject_dir, "control-file.npz")
     patient_ictal_file = os.path.join(subject_dir, "patient-ictal-file.npz")
     patient_pre_ictal_file = os.path.join(subject_dir, "patient-pre-ictal-file.npz")
-        
+            
     # Load control data
     C_c = np.load(control_file)
     C_ic = np.load(patient_ictal_file)
@@ -131,14 +133,26 @@ def transform_causal_graph(subject):
     data_pre = C_pre[f'L{config.OPT_L}_E{config.OPT_E}_tau{config.OPT_TAU}']
     mx = [data_c, data_pre, data_ic]
     
-    # Identity matrix with 23 channels
-    node_features = torch.eye(config.NUM_CHANNELS)
+    # Selected node features
+    subject_dir = Path(config.PROC_DIR + "/" + subject)
+    filename_c = os.path.join(subject_dir, "control-data-aperiodic.npy")
+    filename_ic = os.path.join(subject_dir, 'patient-ictal-data-aperiodic.npy')
+    filename_pre = os.path.join(subject_dir, 'patient-pre-ictal-data-aperiodic.npy')
+    
+    # Lambda exponents
+    lambda_matrix_c = np.load(filename_c)
+    lambda_matrix_ic = np.load(filename_ic)
+    lambda_matrix_pre = np.load(filename_pre)
+    lambda_mx = [lambda_matrix_c, lambda_matrix_pre, lambda_matrix_ic]
 
     # Include all causal relationships as edges except self loops
     edges = [(i, j) for i in range(config.NUM_CHANNELS) for j in range(config.NUM_CHANNELS) if i != j]
     edge_index = torch.tensor(edges, dtype=torch.long).T 
     
     for x, label in zip(mx, config.LABELS):
+        
+        # Additional node features for the 23 channels
+        node_features = torch.tensor(lambda_mx[label].T, dtype=torch.float32)  # (23, 39)
                         
         # Include all causality scores as edge weights
         mask = ~np.eye(config.NUM_CHANNELS, dtype=bool)             # Mask with no self-loops
@@ -181,6 +195,8 @@ def eval_model(dataset, filename):
     count_tp = {0: 0, 1: 0, 2: 0}
     count_fp = {0: 0, 1: 0, 2: 0}
     count_fn = {0: 0, 1: 0, 2: 0}
+    
+    num_feature_segments = 38
 
     # Utilize nested cross validation method
     for idx, i in enumerate(config.SELECTED_SUBJECTS):
@@ -196,7 +212,7 @@ def eval_model(dataset, filename):
         best_params = tune.best_params
         
         # Adam optimizer to train model with learning rate and weight decay
-        model = GraphClassifier(config.NUM_CHANNELS, 16, config.NUM_STATES)
+        model = GraphClassifier(num_feature_segments, 16, config.NUM_STATES)
         optimizer = torch.optim.Adam(model.parameters(), lr=best_params['learning_rate'], weight_decay=best_params['weight_decay'])
         
         # Train the data
@@ -250,7 +266,6 @@ def classify_states():
     # Evaluate and compare models
     eval_model(baseline_dataset, "baseline")
     eval_model(reduced_dataset, "reduced")
-    
     
 if __name__ == "__main__":
     classify_states()
