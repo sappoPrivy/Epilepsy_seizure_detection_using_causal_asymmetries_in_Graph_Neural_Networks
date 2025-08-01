@@ -7,6 +7,7 @@ import random
 import re
 import sys
 import mne
+from mne.time_frequency import psd_array_multitaper
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -18,6 +19,8 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings("ignore")
 from config import config
+from fooof import FOOOF, FOOOFGroup
+from process_CCM_subjects import combine_samples
 
 # Find and collect the annotations of relevant non seizure and seizure samples of a subject
 def collect_subject_samples(subject):
@@ -142,15 +145,86 @@ def preprocess_subject(subject):
             
             print("Saved pre seizure to "+proc_pre_filename)
 
+# Compute and save aperiodic slope of data range
+def compute_aperiodic_slope(X, filename):
+    lambda_matrix = []
+    segment_size = 512 # 2 seconds
+    step = 256  # Overlapping 50%
+    freq = 256  # Hz
+    psds_list = []
+    print(f"Shape of X: {X.shape}")
+    # Segmenting into 2 seconds
+    for start in range(0, X.shape[1] - segment_size + 1, step):
+        segment = X[:, start:start + segment_size]
+        psds, freqs = psd_array_multitaper(segment, sfreq=freq)
+        psds = np.maximum(psds, 1e-12)      # Ensure no zeros or negatives
+        psds_list.append(psds)
+    
+    # Computing aperiodic slope on all psds values
+    all_psds = np.stack(psds_list)
+    psds_reshape = all_psds.reshape(-1, all_psds.shape[-1])
+    fm = FOOOFGroup()
+    start_time = time.time()
+    fm.fit(freqs, psds_reshape)
+    exps = fm.get_params('aperiodic_params', 'exponent')
+    lambda_matrix = exps.reshape(all_psds.shape[:2]) # (segments, channels)
+    end_time = time.time()
+        
+    print(f"Time for computing exponent: {end_time - start_time:.4f} seconds\n")
+    print(f"Shape of lambda matrix {lambda_matrix.shape}")
+    np.save(filename, lambda_matrix)
+
+# Extract features such as aperiodic slope
+def extract_additional_features(subject):
+    
+    # Start extracting subject
+    print(f"Starting subject {subject}")
+    subject_dir = Path(config.PROC_DIR + "/" + subject)
+    
+    # Selected patient files
+    control_data = os.path.join(subject_dir, "control-data.npz")
+    patient_ictal_data = [f for f in os.listdir(subject_dir) if os.path.isfile(os.path.join(subject_dir, f)) and f.split("-")[0]=="ictal"]
+    patient_pre_ictal_data = [f for f in os.listdir(subject_dir) if os.path.isfile(os.path.join(subject_dir, f)) and f.split("-")[0]=="pre"]
+    
+    # Output paths
+    filename_c = os.path.join(subject_dir, "control-data-aperiodic")
+    filename_ic = os.path.join(subject_dir, 'patient-ictal-data-aperiodic')
+    filename_pre = os.path.join(subject_dir, 'patient-pre-ictal-data-aperiodic')
+    
+    # Load preprocessed data
+    X_c = np.load(control_data)['arr']
+    X_ic, ic_len = combine_samples(subject, patient_ictal_data)
+    X_pre, pre_len = combine_samples(subject, patient_pre_ictal_data)
+        
+    start_index= random.randint(config.OPT_L, X_c.shape[1] - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    X_c = X_c[:,start_index:end_index]
+    
+    start_index= random.randint(config.OPT_L, ic_len - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    X_ic = X_ic[:,start_index:end_index]
+    
+    start_index= random.randint(config.OPT_L, pre_len - config.OPT_L - 1)
+    end_index = start_index + config.OPT_L
+    X_pre = X_pre[:,start_index:end_index]
+    mx = [X_c, X_pre, X_ic]
+    filenames = [filename_c, filename_pre, filename_ic]
+    
+    # Extract feature for each state
+    for state in range(config.NUM_STATES):
+        compute_aperiodic_slope(mx[state], filenames[state])
+
 # Preprocessing executed on all subjects
 def preprocess():
     
     # Preprocess all subjects
-    for subject in config.ALL_SUBJECTS:
+    for subject in config.SELECTED_SUBJECTS[:]:
         preprocess_subject(subject)
+        extract_additional_features(subject)
     
     # Preprocess only one subject
-    # preprocess_subject(TEST_SUBJECT,DATA_DIR)
+    # preprocess_subject(config.TEST_SUBJECT)
+    # extract_additional_features(config.TEST_SUBJECT)
 
 if __name__ == "__main__":
     preprocess()
