@@ -25,6 +25,7 @@ import time
 import multiprocessing as mp
 from statsmodels.tsa.stattools import acf
 import pyEDM
+from config import config
 
 # Plot heatmap for single causality matrix
 def plot_heatmap(L, E, tau, output_filename, limit_channels, type):
@@ -47,7 +48,7 @@ def plot_heatmap(L, E, tau, output_filename, limit_channels, type):
     plt.close()
 
 # Plot heatmaps for multiple causality matrices
-def plot_heatmaps(output_subj_dir, L, E, tau, output_filenames, limit_channels):
+def plot_heatmaps(output_subj_dir, L, E, tau, output_filenames, limit_channels, title):
     
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
     channel_arr = [f"Ch{i}" for i in limit_channels]
@@ -71,7 +72,7 @@ def plot_heatmaps(output_subj_dir, L, E, tau, output_filenames, limit_channels):
     
     fig.suptitle(f'Causality heatmaps with L{L}_E{E}_tau{tau}', fontsize=16)
     plt.tight_layout(rect=[0, 0, 0.9, 1])
-    plt.savefig(output_subj_dir+f"/{output_subj_dir.split('/')[-1]}-causality-heatmaps.png")
+    plt.savefig(output_subj_dir+f"/{output_subj_dir.split('/')[-1]}-{title}.png")
     plt.close()
 
 # Plot distribution of asymmetry index values as boxplot
@@ -299,6 +300,7 @@ def correl_subjects(asymm_idx_subjects, subjects_props, output_dir, L, E, tau):
     fig, axs = plt.subplots(2, 2, figsize=(10, 8))
     fig.suptitle('Correlation between age and asymmetry', fontsize=16)
     
+    # Display the figures and points in respective state
     for i, (state, title) in enumerate(zip(mx, titles)):
         row = i // 2
         col = i % 2
@@ -310,63 +312,6 @@ def correl_subjects(asymm_idx_subjects, subjects_props, output_dir, L, E, tau):
     plt.savefig(output_dir+ "/Correlation-between-age-and-asymmetry.png")
     plt.close()    
 
-# Evaluate all subjects
-def eval_subjects(subjects):
-    
-    # Parameters range
-    L_range = [6000, 7000, 8000, 9000, 10000]
-    E_range = [2,3, 4, 5]
-    tau_range=[1,2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
-    # Observed optimal parameter values 
-    opt_L = L_range[4]
-    opt_tau = tau_range[3]
-    opt_E = E_range[2]
-    
-    # Lists of asymmetry indices and dominant channels
-    asymm_idx_subjects = []
-    asymm_ch_highest = []
-    asymm_ch_highest_sub = []
-    
-    for subject in subjects:
-        
-        # Output paths
-        output_dir_subj = output_dir + '/' + subject
-        os.makedirs(output_dir_subj, exist_ok=True)
-        output_filename_c=output_dir_subj+"/control-file"
-        output_filename_ic = output_dir_subj + '/patient-ictal-file'
-        output_filename_pre = output_dir_subj + '/patient-pre-ictal-file'
-        
-        # Plot heatmaps of each causality matrix corresponding to each state
-        plot_heatmaps(output_dir_subj, opt_L, opt_E, opt_tau, [output_filename_c, output_filename_pre, output_filename_ic], [i for i in range(1, 24)])
-        
-        # Compute asymmetry index for each subject
-        asymm_idx_subjects.append(compute_asymm_idx(subject, [output_filename_c, output_filename_pre, output_filename_ic], opt_L, opt_E, opt_tau))
-        
-        # Identify only the highest asymmetric channel in each state
-        asymm_ch_highest.append(compute_ch_asymm(subject, [output_filename_c, output_filename_pre, output_filename_ic], opt_L, opt_E, opt_tau, 1, True))
-        
-        # Identify the top N highest asymmetric channel in each state
-        asymm_ch_highest_sub.append(compute_ch_asymm(subject, [output_filename_c, output_filename_pre, output_filename_ic], opt_L, opt_E, opt_tau, 1, False))
-    
-    # Table of the asymmetry indices for all subjects
-    df = pd.DataFrame(asymm_idx_subjects)
-    df.to_excel(f'{output_dir}/Overall-asymmetry-index.xlsx')
-    
-    # Table of the dominant asymmetric channels for all subjects
-    df2 = pd.DataFrame(asymm_ch_highest)
-    df2.to_excel(f'{output_dir}/Overall-asymmetry-channels.xlsx')
-    
-    # Plot distribution of asymmetry indices across all subjects
-    plot_boxplot_asymm(asymm_idx_subjects, output_dir, opt_L, opt_E, opt_tau)
-    
-    # Plot frequency of dominant asymmetric channels across all subjects
-    plot_frequency_asymm_ch(asymm_ch_highest_sub, output_dir, opt_L, opt_E, opt_tau)
-    
-    # Plot correlation between asymmetry and age of subjects
-    correl_subjects(asymm_idx_subjects, np.array([11, 11, 14, 22, 7, 1.5, 3.5, 10, 3, 2, 3, 9, 16, 7, 12, 6, 13, 9, 6]), output_dir, opt_L, opt_E, opt_tau)
-    
-
 # CCM Parameters
 np.random.seed(1)
 L=10000      # length of time period
@@ -376,20 +321,52 @@ E=2         # embedding dimensions
 # Select chunk
 start_index = 0
 end_index = start_index + L
-n_samples = 1
 
-# Get the parent directory
-base_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(base_dir)
+# Evaluate all subjects
+def eval_subjects():
+    
+    # Lists of asymmetry indices and dominant channels
+    asymm_idx_subjects = []
+    asymm_ch_highest = []
+    asymm_ch_highest_sub = []
+    
+    for subject in config.SELECTED_SUBJECTS:
+        
+        # Output paths
+        output_dir_subj = config.OUTPUT_DIR + '/' + subject
+        os.makedirs(output_dir_subj, exist_ok=True)
+        output_filename_c=output_dir_subj+"/control-file"
+        output_filename_ic = output_dir_subj + '/patient-ictal-file'
+        output_filename_pre = output_dir_subj + '/patient-pre-ictal-file'
+        
+        # Plot heatmaps of each causality matrix corresponding to each state
+        # plot_heatmaps(output_dir_subj, opt_L, opt_E, opt_tau, [output_filename_c, output_filename_pre, output_filename_ic], [i for i in range(1, 24)], "causality-heatmaps")
+        
+        # Compute asymmetry index for each subject
+        asymm_idx_subjects.append(compute_asymm_idx(subject, [output_filename_c, output_filename_pre, output_filename_ic], config.OPT_L, config.OPT_E, config.OPT_TAU))
+        
+        # Identify only the highest asymmetric channel in each state
+        asymm_ch_highest.append(compute_ch_asymm(subject, [output_filename_c, output_filename_pre, output_filename_ic], config.OPT_L, config.OPT_E, config.OPT_TAU, 1, True))
+        
+        # Identify the top N highest asymmetric channel in each state
+        asymm_ch_highest_sub.append(compute_ch_asymm(subject, [output_filename_c, output_filename_pre, output_filename_ic], config.OPT_L, config.OPT_E, config.OPT_TAU, 1, False))
+    
+    # Table of the asymmetry indices for all subjects
+    df = pd.DataFrame(asymm_idx_subjects)
+    df.to_excel(f'{config.EVAL_DIR}/Overall-asymmetry-index.xlsx')
+    
+    # Table of the dominant asymmetric channels for all subjects
+    df2 = pd.DataFrame(asymm_ch_highest)
+    df2.to_excel(f'{config.EVAL_DIR}/Overall-asymmetry-channels.xlsx')
+    
+    # Plot distribution of asymmetry indices across all subjects
+    plot_boxplot_asymm(asymm_idx_subjects, config.EVAL_DIR, config.OPT_L, config.OPT_E, config.OPT_TAU)
+    
+    # Plot frequency of dominant asymmetric channels across all subjects
+    plot_frequency_asymm_ch(asymm_ch_highest_sub, config.EVAL_DIR, config.OPT_L, config.OPT_E, config.OPT_TAU)
+    
+    # Plot correlation between asymmetry and age of subjects
+    correl_subjects(asymm_idx_subjects, np.array([11, 11, 14, 22, 7, 1.5, 3.5, 10, 3, 2, 3, 9, 16, 7, 12, 6, 13, 6]), config.EVAL_DIR, config.OPT_L, config.OPT_E, config.OPT_TAU)
 
-# Define the relative paths
-proc_data_dir = os.path.join(parent_dir, 'processed_data')
-output_dir = os.path.join(parent_dir, 'output_data')
-os.makedirs(output_dir, exist_ok=True)
-
-# EXCLUDED subjects 19, 7, 18, 11, 24
-list_subjects = [f"chb{str(i).zfill(2)}" for i in [1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23]]
-num_cores = mp.cpu_count()
-args_list = [(subject, proc_data_dir, output_dir) for subject in list_subjects]
-
-eval_subjects(list_subjects)
+if __name__ == "__main__":
+    eval_subjects()
