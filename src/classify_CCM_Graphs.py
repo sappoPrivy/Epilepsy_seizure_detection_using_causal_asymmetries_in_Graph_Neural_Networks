@@ -20,16 +20,19 @@ reduced_dataset = []
 
 ### Defining the GNN model with 2 GCN layers, ReLu
 class GraphClassifier(torch.nn.Module):
-    def __init__(self, in_channels, hidden_channels, out_channels):
+    def __init__(self, in_channels, hidden_channels, out_channels, dropout):
         super(GraphClassifier, self).__init__()
         self.conv1 = TransformerConv(in_channels, hidden_channels, edge_dim=1)
         self.conv2 = TransformerConv(hidden_channels, hidden_channels, edge_dim=1)
         self.lin = torch.nn.Linear(hidden_channels, out_channels)
+        self.dropout = dropout
 
     # Applies layers sequentially on feature data and edge information
     def forward(self, x, edge_index, edge_weight, batch):
         x = F.relu(self.conv1(x, edge_index, edge_weight.unsqueeze(-1)))        # Ensure edge weigths is [num_edges, 1]
+        x = F.dropout(x, p=self.dropout, training=self.training)
         x = F.relu(self.conv2(x, edge_index, edge_weight.unsqueeze(-1)))
+        x = F.dropout(x, p=self.dropout, training=self.training)
         x = global_mean_pool(x, batch)                                          # Pool over nodes to get graph representation
         return self.lin(x)
 
@@ -79,11 +82,13 @@ def objective_wrapper(val_dataset, list_subjects):
     def objective(trial):
         weight_decay = trial.suggest_loguniform('weight_decay', 1e-5, 1e-2)
         learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
+        hidden_channels = trial.suggest_categorical("hidden_channels", [8, 16])
+        dropout = trial.suggest_uniform("dropout", 0.0, 0.5)
 
         num_feature_segments = 38
         
         # Initialize the GNN model
-        model = GraphClassifier(num_feature_segments, 16, config.NUM_STATES)
+        model = GraphClassifier(num_feature_segments, hidden_channels, config.NUM_STATES, dropout)
         optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         
         tot_accuracy = 0
@@ -152,7 +157,9 @@ def transform_causal_graph(subject):
     for x, label in zip(mx, config.LABELS):
         
         # Additional node features for the 23 channels
-        node_features = torch.tensor(lambda_mx[label].T, dtype=torch.float32)  # (23, 39)
+        features = lambda_mx[label].T
+        features = (features - np.mean(features)) / (np.std(features) + 1e-6)   # Normalized feature values
+        node_features = torch.tensor(features, dtype=torch.float32)  # (23, 39)
                         
         # Include all causality scores as edge weights
         mask = ~np.eye(config.NUM_CHANNELS, dtype=bool)             # Mask with no self-loops
@@ -212,7 +219,7 @@ def eval_model(dataset, filename):
         best_params = tune.best_params
         
         # Adam optimizer to train model with learning rate and weight decay
-        model = GraphClassifier(num_feature_segments, 16, config.NUM_STATES)
+        model = GraphClassifier(num_feature_segments, best_params['hidden_channels'], config.NUM_STATES, best_params['dropout'])
         optimizer = torch.optim.Adam(model.parameters(), lr=best_params['learning_rate'], weight_decay=best_params['weight_decay'])
         
         # Train the data
@@ -260,12 +267,12 @@ def classify_states():
     # Generate causal graphs for baseline and the reduced set
     for subject in config.SELECTED_SUBJECTS:
         transform_causal_graph(subject)
-        torch.save(baseline_dataset, config.GRAPHS_DIR+"/baseline_dataset.pt")
-        torch.save(reduced_dataset, config.GRAPHS_DIR+"/reduced_dataset.pt")
+        torch.save(baseline_dataset, config.GRAPHS_DIR+"/baseline_datasetv5.pt")
+        torch.save(reduced_dataset, config.GRAPHS_DIR+"/reduced_datasetv5.pt")
     
     # Evaluate and compare models
-    eval_model(baseline_dataset, "baseline")
-    eval_model(reduced_dataset, "reduced")
+    eval_model(baseline_dataset, "baselinev5")
+    eval_model(reduced_dataset, "reducedv5")
     
 if __name__ == "__main__":
     classify_states()
