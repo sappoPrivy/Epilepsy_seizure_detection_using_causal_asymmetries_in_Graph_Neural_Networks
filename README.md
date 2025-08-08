@@ -2,16 +2,16 @@
 Code developed by Tenzin Sangpo Choedon, Summer 2025  
 Extension on the code developed by Tenzin Sangpo Choedon during [the bachelor thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
 
-<!--
-## 📄 Abstract
-Extension on the code developed by Tenzin Sangpo Choedon during [the thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
--->
+## 📄 Overview
+...
+
 ## 🗂️ Table of Contents
 
-<!--- [Abstract](#-abstract)-->
+- [Overview](#-overview)
 - [Project Structure](#-project-structure)
 - [Prerequisites](#-prerequisites)
 - [Usage](#-usage)
+- [Architecture](#-architecture)
 - [Key Findings](#-key-findings)
 
 ## 🏗️ Project Structure
