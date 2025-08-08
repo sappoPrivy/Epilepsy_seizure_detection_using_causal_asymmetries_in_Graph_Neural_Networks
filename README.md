@@ -96,27 +96,24 @@ Otherwise run the scripts in this order and change the global variables accordin
   <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="70%"/>
 </p>
 
-**Performance evaluation on whole causality matrices**
-| Metric        | Non-seizure | Pre-seizure | Seizure |
-|---------------|-------------|-------------|---------|
-| **TP**        | 4           | 6           | 5       |
-| **FP**        | 13          | 12          | 14      |
-| **FN**        | 14          | 12          | 13      |
-| **Sensitivity** | 0.22      | 0.33        | 0.28    |
-| **Precision**   | 0.24      | 0.33        | 0.26    |
-| **F1-score**    | 0.23      | 0.33        | 0.27    |
+**Performance evaluation on whole causality matrices**| Metric       | Non-seizure | Pre-seizure | Seizure |
+|--------------|-------------|-------------|---------|
+| TP           | 6           | 7           | 7       |
+| FP           | 12          | 10          | 12      |
+| FN           | 12          | 11          | 11      |
+| Sensitivity  | 0.33        | 0.39        | 0.39    |
+| Precision    | 0.33        | 0.41        | 0.37    |
+| F1-score     | 0.33        | 0.40        | 0.38    |
 
 **Performance evaluation on reduced causality matrices**  
 | Metric       | Non-seizure | Pre-seizure | Seizure |
 |--------------|-------------|-------------|---------|
-| **TP**       | 9           | 4           | 6       |
-| **FP**       | 17          | 7           | 11      |
-| **FN**       | 9           | 14          | 12      |
-| **Sensitivity** | 0.50     | 0.22        | 0.33    |
-| **Precision**   | 0.35     | 0.36        | 0.35    |
-| **F1-score**    | 0.41     | 0.28        | 0.34    |
-
-[The Rapport is in progress](docs/Rapport.pdf)
+| TP           | 5           | 13          | 1       |
+| FP           | 8           | 25          | 2       |
+| FN           | 13          | 5           | 17      |
+| Sensitivity  | 0.28        | 0.72        | 0.06    |
+| Precision    | 0.38        | 0.34        | 0.33    |
+| F1-score     | 0.32        | 0.46        | 0.10    |
 
 <!--
 <p align="center">
