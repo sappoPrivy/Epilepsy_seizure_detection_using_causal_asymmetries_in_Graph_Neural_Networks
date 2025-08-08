@@ -3,7 +3,9 @@ Code developed by Tenzin Sangpo Choedon, Summer 2025
 Extension on the code developed by Tenzin Sangpo Choedon during [the bachelor thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
 
 ## 📄 Overview
-...
+The purpose of this project is to classify EEG data into three categories: non-seizure, pre-seizure and seizure state, using CCM matrices, then perform a comparison between employing i) all 23 EEG channels present in the CCM matrix and ii) selecting EEG channels that show most consistently dominant asymmetric patterns in the CCM matrix. This is achieved using a GNN model, thus this becomes a graph classification problem. The graph (G) is composed of nodes that represent EEG channels, set of edges that represent causal relationships between EEG channels and edge weights that represent the causality (CCM) scores of the relationship. The goal is to learn the function: f(G) -> y, where it predicts a class label given an input graph G. The class labels 0, 1, 2 corresponds to non-seizure, pre-seizure and seizure state.  However, the F1-score of the baseline model i), as well as the F1-score for the reduced channel model ii), are very low and show no significant difference, indicating that the model does not particularly learn anything. In order to improve the performance of the models, the causality scores were normalized, Transformer GNN was implemented and hyperparamter tuning was performed for learning rate, weight decay, number of GCN layers, hidden layer size, dropout and batch size. Additionally, node features were included - 38 aperiodic slope values per node, and these were also normalized. Although several methods had been utilized, it didn't improve the perormance of the model's. These results could be due to the small dataset, which leads to underfitting or lack of meaningful data. Therefore, the result is inconclusive, though there could still be value in this project since further enhancements or extended datasets could solve this issue.
+
+and aperiodic slope values corresponds to node features. This will 
 
 ## 🗂️ Table of Contents
 
