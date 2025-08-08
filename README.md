@@ -82,7 +82,13 @@ Otherwise run the scripts in this order and change the global variables accordin
 5. **Classify CCM results of all subjects** (results automatically stored in graphs_data and eval_data)  
    ```bash
    python src/classify_CCM_Graphs.py
-   ```
+
+   
+## Architecture
+
+<p align="center">
+  <img src="docs/GNN Architecture.png" alt="Architecture of GNN model" width="70%"/>
+</p>
 
 ## 📘 Key Findings
 
