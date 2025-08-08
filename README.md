@@ -90,7 +90,7 @@ Otherwise run the scripts in this order and change the global variables accordin
   <img src="docs/GNN Architecture.png" alt="Architecture of GNN model" width="70%"/>
 </p>
 
-## 📘 Key Findings
+## Key Findings
 
 <p align="center">
   <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="70%"/>
