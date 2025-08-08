@@ -96,7 +96,8 @@ Otherwise run the scripts in this order and change the global variables accordin
   <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="70%"/>
 </p>
 
-**Performance evaluation on whole causality matrices**| Metric       | Non-seizure | Pre-seizure | Seizure |
+**Performance evaluation on whole causality matrices**  
+| Metric       | Non-seizure | Pre-seizure | Seizure |
 |--------------|-------------|-------------|---------|
 | TP           | 6           | 7           | 7       |
 | FP           | 12          | 10          | 12      |
