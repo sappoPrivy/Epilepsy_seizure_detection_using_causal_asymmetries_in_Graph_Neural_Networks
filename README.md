@@ -96,7 +96,7 @@ Otherwise run the scripts in this order and change the global variables accordin
   <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="70%"/>
 </p>
 
-**Performance evaluation on whole causality matrices**  
+**Performance evaluation on Model i)  whole causality matrices**  
 | Metric       | Non-seizure | Pre-seizure | Seizure |
 |--------------|-------------|-------------|---------|
 | TP           | 6           | 7           | 7       |
@@ -106,7 +106,7 @@ Otherwise run the scripts in this order and change the global variables accordin
 | Precision    | 0.33        | 0.41        | 0.37    |
 | F1-score     | 0.33        | 0.40        | 0.38    |
 
-**Performance evaluation on reduced causality matrices**  
+**Performance evaluation on Model ii) reduced causality matrices**  
 | Metric       | Non-seizure | Pre-seizure | Seizure |
 |--------------|-------------|-------------|---------|
 | TP           | 5           | 13          | 1       |
