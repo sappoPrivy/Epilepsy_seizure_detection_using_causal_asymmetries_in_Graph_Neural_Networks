@@ -14,6 +14,12 @@ from torch_geometric.loader import DataLoader
 import optuna
 from config import config
 
+# Select cpu or gpu
+device = "cuda" if torch.cuda.is_available() else "cpu"
+device_name = torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None'
+print(f"Using device: {device}")
+print(f"GPU Name: {device_name}")
+
 # Consists of EEG graphs
 baseline_dataset = []
 reduced_dataset = []
@@ -41,6 +47,7 @@ def train_model(model, optimizer, loader):
     model.train()
     tot_loss = 0
     for data in loader:
+        data = data.to(device)
         optimizer.zero_grad()
         output = model(data.x, data.edge_index, data.edge_attr, data.batch)
         loss = F.cross_entropy(output, data.y)
@@ -64,6 +71,7 @@ def evaluate_model(model, loader):
     # Test each batch of graphs
     with torch.no_grad():
         for data in loader:
+            data = data.to(device)
             output = model(data.x, data.edge_index, data.edge_attr, data.batch)
             pred = output.argmax(dim=1)
             
@@ -88,7 +96,7 @@ def objective_wrapper(val_dataset, list_subjects):
         num_feature_segments = 38
         
         # Initialize the GNN model
-        model = GraphClassifier(num_feature_segments, hidden_channels, config.NUM_STATES, dropout)
+        model = GraphClassifier(num_feature_segments, hidden_channels, config.NUM_STATES, dropout).to(device)
         optimizer = torch.optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         
         tot_accuracy = 0
@@ -219,7 +227,7 @@ def eval_model(dataset, filename):
         best_params = tune.best_params
         
         # Adam optimizer to train model with learning rate and weight decay
-        model = GraphClassifier(num_feature_segments, best_params['hidden_channels'], config.NUM_STATES, best_params['dropout'])
+        model = GraphClassifier(num_feature_segments, best_params['hidden_channels'], config.NUM_STATES, best_params['dropout']).to(device)
         optimizer = torch.optim.Adam(model.parameters(), lr=best_params['learning_rate'], weight_decay=best_params['weight_decay'])
         
         # Train the data
@@ -267,12 +275,12 @@ def classify_states():
     # Generate causal graphs for baseline and the reduced set
     for subject in config.SELECTED_SUBJECTS:
         transform_causal_graph(subject)
-        torch.save(baseline_dataset, config.GRAPHS_DIR+"/baseline_datasetv5.pt")
-        torch.save(reduced_dataset, config.GRAPHS_DIR+"/reduced_datasetv5.pt")
+        torch.save(baseline_dataset, config.GRAPHS_DIR+"/baseline_datasetWgpu.pt")
+        torch.save(reduced_dataset, config.GRAPHS_DIR+"/reduced_datasetWgpu.pt")
     
     # Evaluate and compare models
-    eval_model(baseline_dataset, "baselinev5")
-    eval_model(reduced_dataset, "reducedv5")
+    eval_model(baseline_dataset, "baselineWgpu")
+    eval_model(reduced_dataset, "reducedWgpu")
     
 if __name__ == "__main__":
     classify_states()
