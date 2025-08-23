@@ -53,6 +53,13 @@ root/
   ```bash
   pip install optuna
   ```
+
+- **GPU Computing in PyTorch with CUDA toolkit**  
+  ```bash
+  sudo apt install -y nvidia-cuda-toolkit python3-pip && \
+  pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+  ```
+
   
 ## 🚀 Usage
 
