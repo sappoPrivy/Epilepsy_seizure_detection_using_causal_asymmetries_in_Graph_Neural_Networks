@@ -7,12 +7,10 @@
 ## CCM Data
 ![Causality heatmaps of chb01](../docs/chb01-causality-heatmaps.png)
 
-<p align="center">
-  <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" />
-</p>
-<p align="center">
-  <img src="docs/Overall-asymmetry-index-distribution.png" alt="Overall Asymmetry Index Distribution"/>
-</p>
+![Overall Asymmetry Channel Frequencies](../docs/Overall-asymmetry-channel-freqs.png)
+
+![Overall Asymmetry Index Distribution](../docs/Overall-asymmetry-index-distribution.png)
+
 ## Graph Classification Problem
 - This is achieved using a GNN model, thus this becomes a graph classification problem.
 - The graph (G) is composed of nodes that represent EEG channels, set of edges that represent causal relationships between EEG channels and edge weights that represent the causality (CCM) scores of the relationship.
