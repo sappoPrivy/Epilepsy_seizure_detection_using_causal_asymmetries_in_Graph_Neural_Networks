@@ -6,14 +6,14 @@
 - 23 EEG channels
 ## CCM Data
 <p align="center">
-  <img src="docs/chb01-causality-heatmaps.png" alt="Causality heatmaps of chb01" width="70%"/>
+  <img src="docs/chb01-causality-heatmaps.png" alt="Causality heatmaps of chb01"/>
 </p>
 
 <p align="center">
-  <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="70%"/>
+  <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" />
 </p>
 <p align="center">
-  <img src="docs/Overall-asymmetry-index-distribution.png" alt="Overall Asymmetry Index Distribution" width="70%"/>
+  <img src="docs/Overall-asymmetry-index-distribution.png" alt="Overall Asymmetry Index Distribution"/>
 </p>
 ## Graph Classification Problem
 - This is achieved using a GNN model, thus this becomes a graph classification problem.
