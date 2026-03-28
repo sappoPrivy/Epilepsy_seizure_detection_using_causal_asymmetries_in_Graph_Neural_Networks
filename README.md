@@ -95,7 +95,7 @@ Otherwise run the scripts in this order and change the global variables accordin
 | Precision    | 0.38        | 0.34        | 0.33    |
 | F1-score     | 0.32        | 0.46        | 0.10    |
 
-Note: However, the F1-score of the baseline model i), as well as the F1-score for the reduced channel model ii), are very low and show no significant difference, indicating that the model does not particularly learn anything, which can be largely attributed to the limited amount of CCM matrices.
+Note: However, the F1-score of the baseline model i), as well as the F1-score for the reduced channel model ii), are very low and show no significant difference, indicating that the model does not particularly learn anything (underfitting), which can be largely attributed to the limited amount of CCM matrices.
 
 **Performance evaluation on Binary Model with Overlapping Windows**  
 | Metric       | Non-seizure |  Seizure |
