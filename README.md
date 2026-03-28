@@ -2,7 +2,7 @@
 Code developed by Tenzin Sangpo Choedon, Summer 2025  
 Extension on the code developed by Tenzin Sangpo Choedon during [the bachelor thesis study](https://github.com/sappoPrivy/Causal_asymmetries_in_epilepsy_using_CCM)
 
-## 🚀 Project Overview
+## Project Overview
 The end goal of this project is to classify EEG data into three categories: non-seizure, pre-seizure and seizure state, using CCM matrices, then perform a comparison between employing i) all 23 EEG channels present in the CCM matrix and ii) selecting EEG channels that show most consistently dominant asymmetric patterns in the CCM matrix.
 Models implemented:
 - Binary GNN classification of seizure vs non-seizure state with all 23 EEG channels.
