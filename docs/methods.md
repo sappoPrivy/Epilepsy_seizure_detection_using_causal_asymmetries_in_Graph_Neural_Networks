@@ -5,7 +5,7 @@
 - Selected subjects: 1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 23 due to missing data.
 - 23 EEG channels
 ## CCM Data
-![Causality heatmaps of chb01](docs/chb01-causality-heatmaps.png)
+![Causality heatmaps of chb01]([docs/chb01-causality-heatmaps.png](https://github.com/sappoPrivy/Epilepsy_seizure_detection_using_causal_asymmetries_in_Graph_Neural_Networks/blob/main/docs/chb01-causality-heatmaps.png))
 
 <p align="center">
   <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" />
