@@ -9,8 +9,6 @@
 
 ![Overall Asymmetry Channel Frequencies](../docs/Overall-asymmetry-channel-freqs.png)
 
-![Overall Asymmetry Index Distribution](../docs/Overall-asymmetry-index-distribution.png)
-
 ## Graph Classification Problem
 - This is achieved using a GNN model, thus this becomes a graph classification problem.
 - The graph (G) is composed of nodes that represent EEG channels, set of edges that represent causal relationships between EEG channels and edge weights that represent the causality (CCM) scores of the relationship.
