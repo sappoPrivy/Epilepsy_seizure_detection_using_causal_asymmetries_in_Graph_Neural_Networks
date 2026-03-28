@@ -124,4 +124,4 @@ Note: Using overlapping sliding windows for the EEG data, allows us to compute m
 -->
 ## Documentation 🔗
 Inside the documentation folder you will find:
-- method.md - methodology, preprocessing, training pipeline
+- [method.md](https://github.com/sappoPrivy/Epilepsy_seizure_detection_using_causal_asymmetries_in_Graph_Neural_Networks/blob/main/docs/methods.md) - methodology, preprocessing, training pipeline
