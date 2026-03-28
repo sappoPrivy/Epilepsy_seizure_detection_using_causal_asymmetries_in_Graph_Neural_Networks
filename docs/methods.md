@@ -5,7 +5,16 @@
 - Selected subjects: 1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 23 due to missing data.
 - 23 EEG channels
 ## CCM Data
+<p align="center">
+  <img src="docs/chb01-causality-heatmaps.png" alt="Causality heatmaps of chb01" width="70%"/>
+</p>
 
+<p align="center">
+  <img src="docs/Overall-asymmetry-channel-freqs.png" alt="Overall Asymmetry Channel Frequencies" width="70%"/>
+</p>
+<p align="center">
+  <img src="docs/Overall-asymmetry-index-distribution.png" alt="Overall Asymmetry Index Distribution" width="70%"/>
+</p>
 ## Graph Classification Problem
 - This is achieved using a GNN model, thus this becomes a graph classification problem.
 - The graph (G) is composed of nodes that represent EEG channels, set of edges that represent causal relationships between EEG channels and edge weights that represent the causality (CCM) scores of the relationship.
