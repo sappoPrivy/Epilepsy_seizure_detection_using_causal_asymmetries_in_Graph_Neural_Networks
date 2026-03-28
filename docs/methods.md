@@ -5,6 +5,10 @@
 - Selected subjects: 1, 2, 3,4, 5, 6, 8, 9, 10, 12, 13, 14, 15, 16, 17, 20, 21, 23 due to missing data.
 - 23 EEG channels
 ## CCM Data
+- Convergence Analysis yielded L=10000
+- Simplex Projection yielded E=4
+- Autocorrelation Analysis yielded tau=4
+  
 ![Causality heatmaps of chb01](../docs/chb01-causality-heatmaps.png)
 
 ![Overall Asymmetry Channel Frequencies](../docs/Overall-asymmetry-channel-freqs.png)
